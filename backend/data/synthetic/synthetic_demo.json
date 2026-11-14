@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "dataset_name": "SYNTHETIC_DEMO",
+    "evidence_status": "SYNTHETIC",
+    "description": "Fictional demonstration threat dataset. Not real intelligence.",
+    "domains_suffix": ".invalid"
+  },
+  "phones_count": 9,
+  "urls_count": 12,
+  "banks_count": 9,
+  "wallets_count": 6,
+  "scenarios": [
+    "Scenario 1: Phone -> Suspicious URL -> Simulated Bank Account",
+    "Scenario 2: Simulated Bank Account -> Transaction Pathway -> Layering Mules",
+    "Scenario 3: Cryptocurrency Wallet -> Laundering Network"
+  ]
+}
