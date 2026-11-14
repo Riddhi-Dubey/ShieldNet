@@ -18,10 +18,12 @@ def test_advanced_message_categories():
     assert "report_text" in res_kyc.model_dump()
     assert "sbi-kyc-verify-portal" not in res_kyc.report_text or "Redacted" in res_kyc.report_text
 
-    # 2. OTP solicitation
+    # 2. OTP solicitation (Model scam probability drives risk assessment)
     msg_otp = "Dear customer, payment of Rs 15,000 pending. Share your one-time password OTP 829104 to cancel immediately."
     res_otp = analyze_scam_message(msg_otp)
-    assert res_otp.risk_score >= 50.0
+    assert res_otp.risk_score is not None
+    assert res_otp.risk_score >= 40.0
+    assert res_otp.risk_level in ["MEDIUM", "HIGH"]
     assert any(s.signal_name == "OTP_REQUEST" for s in res_otp.detected_signals)
     assert "829104" not in res_otp.redacted_message_preview
 
@@ -177,3 +179,40 @@ def test_cors_headers(client: TestClient):
         }
     )
     assert res_rejected.headers.get("access-control-allow-origin") != "https://malicious-attacker.evil"
+
+
+def test_message_probability_bands_and_unable_to_assess():
+    from backend.app.services.risk_thresholds import (
+        calculate_message_risk_from_probability,
+        MESSAGE_PROBABILITY_THRESHOLDS
+    )
+    # Check 65.3% -> MEDIUM RISK
+    res_65 = calculate_message_risk_from_probability(65.3)
+    assert res_65["risk_level"] == "MEDIUM"
+    assert res_65["display_label"] == "Medium Risk"
+    assert res_65["is_assessed"] is True
+
+    # Check boundaries
+    # Low: < 30.0%
+    assert calculate_message_risk_from_probability(0.0)["risk_level"] == "LOW"
+    assert calculate_message_risk_from_probability(29.9)["risk_level"] == "LOW"
+
+    # Medium: 30.0% to < 70.0%
+    assert calculate_message_risk_from_probability(30.0)["risk_level"] == "MEDIUM"
+    assert calculate_message_risk_from_probability(50.0)["risk_level"] == "MEDIUM"
+    assert calculate_message_risk_from_probability(69.9)["risk_level"] == "MEDIUM"
+
+    # High: 70.0% to 100%
+    assert calculate_message_risk_from_probability(70.0)["risk_level"] == "HIGH"
+    assert calculate_message_risk_from_probability(100.0)["risk_level"] == "HIGH"
+
+    # Missing or invalid -> Unable to assess (never invent a score)
+    res_none = calculate_message_risk_from_probability(None)
+    assert res_none["risk_level"] == "UNABLE_TO_ASSESS"
+    assert res_none["display_label"] == "Unable to Assess"
+    assert res_none["is_assessed"] is False
+
+    res_invalid = calculate_message_risk_from_probability(-5.0)
+    assert res_invalid["risk_level"] == "UNABLE_TO_ASSESS"
+    assert res_invalid["is_assessed"] is False
+

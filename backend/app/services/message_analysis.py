@@ -3,7 +3,10 @@ import re
 from typing import List, Dict, Any, Tuple, Optional
 import joblib
 from backend.app.schemas.analysis import SignalDetail, MessageAnalysisResponse
-from backend.app.services.risk_scoring import calculate_risk_level
+from backend.app.services.risk_thresholds import (
+    MESSAGE_PROBABILITY_THRESHOLDS,
+    calculate_message_risk_from_probability
+)
 from backend.app.security.redaction import redact_sensitive_text
 from backend.app.services.report_generator import generate_plain_text_report
 from backend.app.services.llm_explainer import generate_llm_explanation
@@ -214,57 +217,67 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
             vec = vectorizer.transform([message])
             prob = float(model.predict_proba(vec)[0][1]) * 100.0
             ml_prob = round(prob, 1)
-            ml_prediction = "SCAM_OR_FRAUD" if ml_prob >= 50.0 else "BENIGN"
             model_version = meta.get("model_version", "v1.1.0") if meta else "v1.1.0"
             model_type = meta.get("model_type", "TF-IDF + Calibrated Logistic Regression") if meta else "TF-IDF + Calibrated Logistic Regression"
         except Exception:
             ml_prob = None
-            ml_prediction = "UNCERTAIN"
             model_version = "heuristic-fallback-v1.0"
             model_type = "Rule-Based Heuristic Parser (ML Offline)"
     else:
         ml_prob = None
-        ml_prediction = "UNCERTAIN"
         model_version = "heuristic-fallback-v1.0"
         model_type = "Rule-Based Heuristic Parser (ML Offline)"
 
     raw_total = base_score + compound_boost
-    if ml_prob is not None:
-        if raw_total == 0:
-            # If no heuristic signals matched, keep benign messages Low
-            risk_score = round(min(24.0, ml_prob * 0.25), 1)
-        else:
-            # Multi-layer defense: synthesize heuristic risk and ML probability
-            risk_score = min(100.0, round(max(raw_total, (raw_total * 0.7) + (ml_prob * 0.3)), 1))
-    else:
-        # ML model unavailable: Conservative heuristic scoring with explicit uncertainty disclosure
-        if raw_total == 0:
-            # Without ML model or heuristics, flag high uncertainty
-            risk_score = 15.0
-        else:
-            risk_score = min(100.0, round(raw_total, 1))
+    heuristic_score = min(100.0, round(raw_total, 1))
 
-    risk_level = calculate_risk_level(risk_score)
+    # Derive risk tier directly from calibrated model probability
+    risk_assessment = calculate_message_risk_from_probability(ml_prob)
+    risk_level = risk_assessment["risk_level"]
+    display_label = risk_assessment["display_label"]
 
-    # Explanation generation
-    if not detected_signals:
-        if ml_prob is not None and ml_prob < 30.0:
-            explanation = (
-                "Automated scan did not identify prominent scam indicators (urgency coercion, OTP solicitation, "
-                "credential harvesting, or brand impersonation). Note: A low risk score does not guarantee safety; "
-                "always verify independently before sharing information."
-            )
-        else:
-            explanation = (
-                "No overt heuristic triggers matched. Note: Zero detected indicators does not guarantee that an unknown "
-                "message is benign. If the machine learning model was unavailable, exercise heightened caution."
-            )
-    else:
-        sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
+    if ml_prob is None:
+        # Handle missing or invalid model probabilities with an "Unable to assess" state
+        risk_score = None
+        ml_prediction = "UNABLE_TO_ASSESS"
+        verdict = "UNABLE TO ASSESS — STATISTICAL MODEL PROBABILITY UNAVAILABLE"
+        summary = "Unable to assess: Machine learning model probability unavailable."
         explanation = (
-            f"Evaluated {len(detected_signals)} suspicious behavioral signal(s): {', '.join(sig_names)}. "
-            f"Compound threat correlation ({risk_score}/100) indicates significant risk of deceptive social engineering."
+            "The statistical machine learning model was unable to compute a calibrated scam probability "
+            "for this message. As a result, no automated risk level has been assigned. "
+            "Please exercise heightened caution with unsolicited messages."
         )
+    else:
+        # Model probability is the sole source of truth for scam probability and risk level
+        risk_score = ml_prob
+        ml_prediction = "SCAM_OR_FRAUD" if ml_prob >= 50.0 else "BENIGN"
+        verdict = f"{risk_level} RISK ASSESSMENT — {ml_prob:.1f}% SCAM PROBABILITY"
+        summary = f"{display_label}: Evaluated at {ml_prob:.1f}% scam probability by calibrated model."
+
+        if risk_level == "HIGH":
+            explanation = (
+                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as High Risk. "
+            )
+        elif risk_level == "MEDIUM":
+            explanation = (
+                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as Medium Risk. "
+            )
+        else:
+            explanation = (
+                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as Low Risk. "
+            )
+
+        if detected_signals:
+            sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
+            explanation += (
+                f"Detected {len(detected_signals)} heuristic behavioral signal(s): {', '.join(sig_names)}. "
+                "Always independently verify sender identity through official channels."
+            )
+        else:
+            explanation += (
+                "Automated scan did not match overt heuristic deception signatures. "
+                "Note: A low probability or lack of matched triggers does not guarantee that an unknown message is authentic."
+            )
 
     # Safe next steps tailored to findings
     safe_steps: List[str] = [
@@ -278,13 +291,13 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         safe_steps.insert(0, "CRITICAL: Do NOT send or disclose any one-time code or PIN.")
     if any(s.signal_name in ["IMPERSONATION", "KYC_HARVESTING"] for s in detected_signals):
         safe_steps.insert(0, "IMPORTANT: Banks NEVER suspend accounts via SMS links demanding online KYC updates.")
-    if risk_score >= 60.0:
+    if risk_score is not None and risk_score >= 60.0:
         safe_steps.append("Report financial cyber fraud immediately to the National Cyber Crime Helpline at 1930 or https://cybercrime.gov.in.")
 
     limitations = (
-        "This evaluation is an automated risk assessment based on pattern-matching rules and calibrated machine learning. "
+        "This evaluation is an automated risk assessment based on calibrated statistical machine learning. "
         "It does NOT represent a legal determination or guaranteed proof of fraud. "
-        "A low score does NOT guarantee that an unsolicited message is benign."
+        "A low probability score does NOT guarantee that an unsolicited message is benign."
     )
 
     redacted_preview = redact_sensitive_text(message)
@@ -293,23 +306,13 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         {
             "signal": s.signal_name,
             "title": s.signal_name.replace("_", " ").title(),
-            "severity": "CRITICAL" if s.weight >= 26.0 or risk_score >= 70.0 else "HIGH" if s.weight >= 20.0 else "MEDIUM",
+            "severity": "CRITICAL" if (s.weight >= 26.0 and risk_level == "HIGH") else "HIGH" if risk_level == "HIGH" else "MEDIUM" if risk_level == "MEDIUM" else "LOW",
             "explanation": s.description,
             "description": s.description,
             "evidence_snippet": s.evidence_snippet
         }
         for s in detected_signals
     ]
-
-    # Objective non-alarmist assessment verdicts
-    if risk_score >= 70.0:
-        verdict = f"CRITICAL RISK ASSESSMENT — ELEVATED COERCION & HARVESTING PATTERNS ({risk_score}/100)"
-    elif risk_score >= 40.0:
-        verdict = f"ELEVATED RISK ASSESSMENT — POTENTIAL FRAUD INDICATORS DETECTED ({risk_score}/100)"
-    elif risk_score >= 15.0:
-        verdict = f"LOW-TO-MODERATE RISK ASSESSMENT — PROCEED WITH CAUTION ({risk_score}/100)"
-    else:
-        verdict = f"LOW RISK ASSESSMENT — DOES NOT GUARANTEE SAFETY ({risk_score}/100)"
 
     assessment_notice = (
         "Automated risk assessment based on behavioral and structural patterns. "
@@ -320,11 +323,12 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
     report_data = {
         "risk_score": risk_score,
         "risk_level": risk_level,
+        "heuristic_score": heuristic_score,
         "verdict": verdict,
         "detected_signals": detected_signals,
         "warning_signals": warning_signals,
         "explanation": explanation,
-        "summary": explanation,
+        "summary": summary,
         "safe_next_steps": safe_steps,
         "redacted_message_preview": redacted_preview,
         "ml_probability": ml_prob,
@@ -339,10 +343,11 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
     return MessageAnalysisResponse(
         risk_score=risk_score,
         risk_level=risk_level,
+        heuristic_score=heuristic_score,
         detected_signals=detected_signals,
         warning_signals=warning_signals,
         verdict=verdict,
-        summary=explanation,
+        summary=summary,
         explanation=explanation,
         safe_next_steps=safe_steps,
         limitations=limitations,

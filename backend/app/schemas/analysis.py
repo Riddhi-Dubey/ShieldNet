@@ -18,8 +18,9 @@ class MessageAnalysisRequest(BaseModel):
 
 
 class MessageAnalysisResponse(BaseModel):
-    risk_score: float = Field(..., ge=0.0, le=100.0, description="Calibrated risk assessment score (0-100)")
-    risk_level: str = Field(..., description="Low, Medium, High, or Critical")
+    risk_score: Optional[float] = Field(None, ge=0.0, le=100.0, description="Calibrated risk assessment score / model scam probability (0-100)")
+    risk_level: str = Field(..., description="LOW, MEDIUM, HIGH, or UNABLE_TO_ASSESS")
+    heuristic_score: Optional[float] = Field(None, ge=0.0, le=100.0, description="Secondary heuristic score (0-100) based on pattern matching")
     detected_signals: List[SignalDetail]
     warning_signals: List[Dict[str, Any]] = Field(default_factory=list)
     verdict: Optional[str] = None
@@ -28,7 +29,7 @@ class MessageAnalysisResponse(BaseModel):
     safe_next_steps: List[str]
     limitations: str
     redacted_message_preview: str
-    ml_prediction: Optional[str] = Field(None, description="SCAM_OR_FRAUD, BENIGN, or UNCERTAIN")
+    ml_prediction: Optional[str] = Field(None, description="SCAM_OR_FRAUD, BENIGN, or UNABLE_TO_ASSESS")
     ml_probability: Optional[float] = Field(None, description="Calibrated ML probability score (0-100)")
     model_version: Optional[str] = Field(None, description="Trained ML model version")
     model_type: Optional[str] = Field(None, description="ML architecture used")

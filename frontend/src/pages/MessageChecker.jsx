@@ -19,6 +19,7 @@ import { analyseMessage, extractErrorMessage, downloadAnalysisReport } from '../
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 import PrivacyModal from '../components/PrivacyModal';
+import { getMessageRiskAssessment, MESSAGE_PROBABILITY_THRESHOLDS } from '../utils/riskThresholds';
 
 const SAMPLE_SUSPICIOUS_MESSAGES = [
   "URGENT: Your SBI account has been suspended due to pending KYC update. Click http://sbi-kyc-verify-portal.in immediately to avoid permanent deactivation.",
@@ -248,120 +249,223 @@ export const MessageChecker = () => {
       )}
 
       {/* Analysis Result */}
-      {result && (
-        <div className="cyber-card cyber-card-glow" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Top Score Banner */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '16px',
-              paddingBottom: '20px',
-              borderBottom: '1px solid var(--border-color)',
-            }}
-          >
-            <div>
-              {result.ml_probability !== undefined && result.ml_probability !== null && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span
-                    className="badge badge-neutral"
-                    style={{ fontSize: '11px', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Cpu size={12} />
-                    {result.model_type || 'TF-IDF + LogReg'} {result.model_version ? `(${result.model_version})` : ''} • {result.ml_probability}% Scam Prob
-                  </span>
-                  {result.ml_prediction && (
-                    <span className={`badge ${result.ml_prediction === 'SCAM_OR_FRAUD' ? 'badge-critical' : 'badge-neutral'}`} style={{ fontSize: '11px' }}>
-                      {result.ml_prediction}
-                    </span>
-                  )}
-                </div>
-              )}
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Assessed Threat Verdict
-              </div>
-              <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
-                {result.verdict || result.summary || 'Risk Evaluation Complete'}
-              </h2>
-            </div>
+      {result && (() => {
+        const riskAssessment = getMessageRiskAssessment(result.ml_probability ?? result.risk_score);
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>THREAT SCORE</div>
-                <div style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-mono)', color: result.risk_score > 70 ? 'var(--accent-critical)' : result.risk_score > 40 ? 'var(--accent-warning)' : 'var(--accent-green)' }}>
-                  {result.risk_score ?? result.riskScore ?? 0}<span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>/100</span>
-                </div>
-              </div>
-              <RiskBadge level={result.risk_level || result.riskLevel} score={result.risk_score ?? result.riskScore} size="lg" />
-
-              {result.report_text && (
-                <button
-                  type="button"
-                  onClick={handleDownloadReport}
-                  className="btn btn-secondary"
-                  style={{ fontSize: '12px', padding: '7px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  title="Download plain-text assessment dossier"
-                >
-                  <Download size={14} />
-                  Download Report (.txt)
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Assessment Scope Notice Banner */}
-          <div
-            style={{
-              padding: '10px 14px',
-              borderRadius: '6px',
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              fontSize: '12px',
-              color: 'var(--text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              lineHeight: 1.45,
-            }}
-          >
-            <Info size={16} style={{ color: 'var(--primary-accent)', flexShrink: 0 }} />
-            <span>
-              <strong>Assessment Notice: </strong>
-              {result.assessment_notice || "Automated risk assessment based on behavioral patterns. Does not constitute legal proof or a guaranteed fraud determination."}
-            </span>
-          </div>
-
-          {/* Optional Plain-Language AI Explainer */}
-          {result.llm_explanation && (
+        return (
+          <div className="cyber-card cyber-card-glow" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Top Score Banner: Model Probability as Single Source of Truth */}
             <div
               style={{
-                padding: '14px 16px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(57, 127, 120, 0.08)',
-                border: '1px solid rgba(57, 127, 120, 0.25)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                paddingBottom: '20px',
+                borderBottom: '1px solid var(--border-color)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--primary-accent)' }}>
-                <Sparkles size={14} />
-                <span>Plain-Language AI Summary</span>
+              <div>
+                {riskAssessment.isAssessed ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                    <span
+                      className="badge badge-neutral"
+                      style={{ fontSize: '11px', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Cpu size={12} />
+                      {result.model_type || 'TF-IDF + Calibrated Logistic Regression'} {result.model_version ? `(${result.model_version})` : ''}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: riskAssessment.colorVar,
+                        backgroundColor: riskAssessment.bgVar,
+                        border: `1px solid ${riskAssessment.borderColor}`,
+                        padding: '2px 9px',
+                        borderRadius: '9999px',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {result.ml_probability !== undefined && result.ml_probability !== null ? `${Number(result.ml_probability).toFixed(1)}% scam probability` : ''}
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <span className="badge badge-neutral" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                      <Cpu size={12} />
+                      Statistical ML Model Unavailable
+                    </span>
+                  </div>
+                )}
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Assessed Threat Verdict
+                </div>
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
+                  {result.verdict || (riskAssessment.isAssessed ? `${riskAssessment.displayVerdict} — ${Number(result.ml_probability).toFixed(1)}% SCAM PROBABILITY` : 'Unable to Assess Threat')}
+                </h2>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
-                {result.llm_explanation}
-              </p>
-            </div>
-          )}
 
-          {/* Warning Signals List */}
-          <div>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <AlertTriangle size={16} style={{ color: 'var(--accent-warning)' }} />
-              Detected Warning Signals & Explanations
-            </h3>
+              {/* Primary Metric: Model Scam Probability and agreeing Risk Level */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                {riskAssessment.isAssessed ? (
+                  <>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                        SCAM PROBABILITY
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '32px',
+                          fontWeight: 900,
+                          fontFamily: 'var(--font-mono)',
+                          color: riskAssessment.colorVar,
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {Number(result.ml_probability).toFixed(1)}%
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: riskAssessment.colorVar,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          marginTop: '2px',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {riskAssessment.label}
+                      </div>
+                    </div>
+                    <RiskBadge
+                      level={riskAssessment.level}
+                      score={Number(result.ml_probability).toFixed(1)}
+                      scoreSuffix="%"
+                      size="lg"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        STATUS
+                      </div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                        Unable to assess
+                      </div>
+                    </div>
+                    <RiskBadge level="unable_to_assess" size="lg" />
+                  </>
+                )}
+
+                {result.report_text && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadReport}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '12px', padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    title="Download plain-text assessment dossier"
+                  >
+                    <Download size={14} />
+                    Download Report (.txt)
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Probability Bands Reference & Live State */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                padding: '9px 14px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                fontSize: '11.5px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Calibrated Probability Bands:</span>
+                <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>● Low Risk: &lt; 30%</span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span style={{ color: 'var(--accent-warning)', fontWeight: 600 }}>● Medium Risk: 30% to &lt;70%</span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span style={{ color: 'var(--accent-critical)', fontWeight: 600 }}>● High Risk: 70% to 100%</span>
+              </div>
+              {riskAssessment.isAssessed && (
+                <div style={{ color: 'var(--text-secondary)' }}>
+                  Assessed: <strong style={{ color: riskAssessment.colorVar }}>{Number(result.ml_probability).toFixed(1)}% scam probability → {riskAssessment.label.toUpperCase()}</strong>
+                </div>
+              )}
+            </div>
+
+            {/* Assessment Scope Notice Banner */}
+            <div
+              style={{
+                padding: '10px 14px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                fontSize: '12px',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                lineHeight: 1.45,
+              }}
+            >
+              <Info size={16} style={{ color: 'var(--primary-accent)', flexShrink: 0 }} />
+              <span>
+                <strong>Assessment Notice: </strong>
+                {result.assessment_notice || "Automated risk assessment based on behavioral patterns. Does not constitute legal proof or a guaranteed fraud determination."}
+              </span>
+            </div>
+
+            {/* Optional Plain-Language AI Explainer */}
+            {result.llm_explanation && (
+              <div
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(57, 127, 120, 0.08)',
+                  border: '1px solid rgba(57, 127, 120, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--primary-accent)' }}>
+                  <Sparkles size={14} />
+                  <span>Plain-Language AI Summary</span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
+                  {result.llm_explanation}
+                </p>
+              </div>
+            )}
+
+            {/* Warning Signals List */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={16} style={{ color: 'var(--accent-warning)' }} />
+                  Detected Behavioral Threat Signals
+                </h3>
+                {result.heuristic_score !== undefined && result.heuristic_score !== null && (
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                    Heuristic Indicator Score: <strong style={{ fontFamily: 'var(--font-mono)' }}>{result.heuristic_score}/100</strong>
+                    <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>
+                      (Rule match score from {result.detected_signals?.length || result.warning_signals?.length || 0} trigger(s); distinct from statistical model probability)
+                    </span>
+                  </span>
+                )}
+              </div>
 
             {result.warning_signals && result.warning_signals.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -462,9 +566,10 @@ export const MessageChecker = () => {
               <FileWarning size={16} />
               Forward to Report Form
             </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Privacy Limits & Technical Verification Modal */}
       <PrivacyModal

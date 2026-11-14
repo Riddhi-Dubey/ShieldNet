@@ -19,7 +19,13 @@ def generate_plain_text_report(
     lines.append("=" * 72)
     lines.append(f"Report Generated : {now_str}")
     lines.append(f"Assessment Type  : {analysis_type.upper()}")
-    lines.append(f"Risk Rating      : {data.get('risk_level', 'UNKNOWN')} ({data.get('risk_score', 0.0):.1f} / 100.0)")
+    if analysis_type.lower() == "message":
+        if data.get("risk_level") == "UNABLE_TO_ASSESS" or data.get("ml_probability") is None:
+            lines.append("Risk Rating      : UNABLE TO ASSESS (Statistical Model Probability Unavailable)")
+        else:
+            lines.append(f"Risk Rating      : {data.get('risk_level')} RISK ({float(data.get('ml_probability')):.1f}% scam probability)")
+    else:
+        lines.append(f"Risk Rating      : {data.get('risk_level', 'UNKNOWN')} ({data.get('risk_score', 0.0):.1f} / 100.0)")
     if data.get("verdict"):
         lines.append(f"Verdict Summary  : {data.get('verdict')}")
     lines.append("-" * 72)
@@ -95,7 +101,12 @@ def generate_plain_text_report(
         lines.append(f"  Model Version    : {data.get('model_version', 'v1.1.0')}")
         ml_prob = data.get("ml_probability")
         if ml_prob is not None:
-            lines.append(f"  ML Scam Prob     : {ml_prob:.1f}%")
+            lines.append(f"  Scam Probability : {float(ml_prob):.1f}% (Source of truth for risk rating)")
+            lines.append("  Probability Bands: Low (< 30.0%), Medium (30.0% to < 70.0%), High (>= 70.0%)")
+        else:
+            lines.append("  Scam Probability : UNAVAILABLE (Unable to compute calibrated probability)")
+        if data.get("heuristic_score") is not None:
+            lines.append(f"  Heuristic Score  : {float(data.get('heuristic_score')):.1f} / 100.0 (Secondary pattern-matching indicator)")
         lines.append("  Heuristic Layer  : Compound Psychological & Credential Harvesting Matrix")
     else:
         lines.append(f"  Model Status     : {'Active' if data.get('model_availability') else 'Heuristic Fallback'}")
