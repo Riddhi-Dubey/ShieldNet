@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
-import { ZoomIn, ZoomOut, Maximize2, RefreshCw, Filter, Sparkles, Layers } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, RefreshCw } from 'lucide-react';
 
 const ENTITY_COLORS = {
-  phone: '#38BDF8', // Blue
-  url: '#FB923C',   // Orange
-  bank: '#A78BFA',  // Purple
-  wallet: '#34D399', // Green
-  default: '#94A3B8',
+  phone: { bg: '#E0F2FE', border: '#0284C7', text: '#0369A1' },        // Soft Blue
+  url: { bg: '#FEE2E2', border: '#DC2626', text: '#B91C1C' },          // Soft Red/Pink
+  bank: { bg: '#FEF3C7', border: '#D97706', text: '#B45309' },         // Soft Amber
+  wallet: { bg: '#F3E8FF', border: '#7C3AED', text: '#6D28D9' },       // Soft Violet
+  default: { bg: '#F1F5F9', border: '#64748B', text: '#475569' },
 };
 
 export const NetworkGraph = ({
@@ -53,43 +53,48 @@ export const NetworkGraph = ({
       boxSelectionEnabled: false,
       autounselectify: false,
       style: [
-        // Base Node Style
+        // Base Node Style for Light Theme
         {
           selector: 'node',
           style: {
             'label': 'data(label)',
             'font-size': '11px',
             'font-family': 'JetBrains Mono, monospace',
-            'color': '#F8FAFC',
+            'font-weight': '600',
+            'color': '#202C35',
             'text-valign': 'bottom',
             'text-margin-y': 6,
-            'background-color': (ele) => ENTITY_COLORS[ele.data('type')] || ENTITY_COLORS.default,
-            'width': 36,
-            'height': 36,
-            'border-width': 2,
-            'border-color': '#1E293B',
-            'text-background-opacity': 0.7,
-            'text-background-color': '#0B1020',
+            'background-color': (ele) => (ENTITY_COLORS[ele.data('type')] || ENTITY_COLORS.default).bg,
+            'width': 38,
+            'height': 38,
+            'border-width': 2.5,
+            'border-color': (ele) => (ENTITY_COLORS[ele.data('type')] || ENTITY_COLORS.default).border,
+            'text-background-opacity': 0.95,
+            'text-background-color': '#FFFFFF',
             'text-background-padding': 3,
             'text-background-shape': 'roundrectangle',
+            'text-border-width': 1,
+            'text-border-color': '#E2E9E6',
+            'text-border-opacity': 0.8,
           },
         },
-        // Synthetic Nodes - dashed border & diamond/hexagon shape
+        // Synthetic Nodes - dashed border & hexagon shape
         {
           selector: 'node[?isSynthetic]',
           style: {
             'border-style': 'dashed',
             'border-width': 3,
-            'border-color': '#A78BFA',
+            'border-color': '#7C3AED',
             'shape': 'hexagon',
           },
         },
-        // High Risk Nodes - pulsing ring style
+        // High Risk Nodes - highlighted border
         {
           selector: 'node[riskLevel = "critical"], node[riskLevel = "high"]',
           style: {
-            'border-color': '#F87171',
+            'border-color': '#B91C1C',
             'border-width': 3,
+            'background-color': '#FEE2E2',
           },
         },
         // Selected Node Highlight
@@ -97,30 +102,33 @@ export const NetworkGraph = ({
           selector: 'node:selected',
           style: {
             'border-width': 4,
-            'border-color': '#38BDF8',
-            'shadow-blur': 20,
-            'shadow-color': '#38BDF8',
+            'border-color': '#397F78',
+            'width': 46,
+            'height': 46,
+            'shadow-blur': 12,
+            'shadow-color': 'rgba(57, 127, 120, 0.4)',
             'shadow-opacity': 0.8,
-            'width': 44,
-            'height': 44,
           },
         },
-        // Base Edge Style
+        // Base Edge Style for Light Theme
         {
           selector: 'edge',
           style: {
             'width': 2,
-            'line-color': '#334155',
-            'target-arrow-color': '#475569',
+            'line-color': '#94A3B8',
+            'target-arrow-color': '#64748B',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             'label': 'data(relation)',
-            'font-size': '9px',
-            'color': '#94A3B8',
-            'text-background-opacity': 0.85,
-            'text-background-color': '#0B1020',
-            'text-background-padding': 2,
+            'font-size': '9.5px',
+            'font-weight': '500',
+            'color': '#475569',
+            'text-background-opacity': 0.95,
+            'text-background-color': '#FFFFFF',
+            'text-background-padding': 2.5,
             'text-background-shape': 'roundrectangle',
+            'text-border-width': 1,
+            'text-border-color': '#E2E8F0',
           },
         },
         // Synthetic Edges
@@ -128,24 +136,24 @@ export const NetworkGraph = ({
           selector: 'edge[?isSynthetic]',
           style: {
             'line-style': 'dashed',
-            'line-color': '#7C3AED',
-            'target-arrow-color': '#7C3AED',
+            'line-color': '#8B5CF6',
+            'target-arrow-color': '#8B5CF6',
           },
         },
         // Edge Selection
         {
           selector: 'edge:selected',
           style: {
-            'line-color': '#38BDF8',
-            'target-arrow-color': '#38BDF8',
-            'width': 3,
+            'line-color': '#397F78',
+            'target-arrow-color': '#397F78',
+            'width': 3.5,
           },
         },
         // Dimmed elements when highlighting
         {
           selector: '.dimmed',
           style: {
-            'opacity': 0.15,
+            'opacity': 0.18,
           },
         },
         // Highlighted elements
@@ -224,7 +232,7 @@ export const NetworkGraph = ({
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '520px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: '#090E1A', border: '1px solid var(--border-color)' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '520px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', backgroundColor: '#F8FAF9', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-card)' }}>
       {/* Cytoscape Canvas Container */}
       <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '520px' }} />
 
@@ -235,13 +243,13 @@ export const NetworkGraph = ({
           top: '16px',
           right: '16px',
           display: 'flex',
-          gap: '8px',
-          backgroundColor: 'rgba(17, 24, 39, 0.85)',
-          backdropFilter: 'blur(8px)',
+          gap: '6px',
+          backgroundColor: '#FFFFFF',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
-          padding: '6px',
+          padding: '5px',
           zIndex: 10,
+          boxShadow: 'var(--shadow-sm)',
         }}
       >
         <button
@@ -283,37 +291,39 @@ export const NetworkGraph = ({
           position: 'absolute',
           bottom: '16px',
           left: '16px',
-          backgroundColor: 'rgba(17, 24, 39, 0.9)',
-          backdropFilter: 'blur(8px)',
+          backgroundColor: '#FFFFFF',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
-          padding: '10px 14px',
-          fontSize: '11px',
+          padding: '8px 14px',
+          fontSize: '11.5px',
           display: 'flex',
-          gap: '16px',
+          gap: '14px',
           alignItems: 'center',
           flexWrap: 'wrap',
           zIndex: 10,
+          boxShadow: 'var(--shadow-sm)',
+          color: 'var(--text-primary)',
+          fontWeight: 600,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.phone }} />
+          <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.phone.bg, border: `2px solid ${ENTITY_COLORS.phone.border}` }} />
           <span>Phone</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.url }} />
+          <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.url.bg, border: `2px solid ${ENTITY_COLORS.url.border}` }} />
           <span>URL</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.bank }} />
+          <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.bank.bg, border: `2px solid ${ENTITY_COLORS.bank.border}` }} />
           <span>Bank/UPI</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.wallet }} />
+          <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: ENTITY_COLORS.wallet.bg, border: `2px solid ${ENTITY_COLORS.wallet.border}` }} />
           <span>Crypto Wallet</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderLeft: '1px solid var(--border-color)', paddingLeft: '10px' }}>
-          <span style={{ width: '10px', height: '10px', border: '2px dashed #A78BFA', borderRadius: '2px' }} />
+          <span style={{ width: '11px', height: '11px', border: '2px dashed #7C3AED', borderRadius: '2px', backgroundColor: '#F3E8FF' }} />
           <span>Synthetic</span>
         </div>
       </div>

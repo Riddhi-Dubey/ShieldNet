@@ -29,9 +29,9 @@ export const EmergencyModal = ({ isOpen, onClose }) => {
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: '#0F172A',
-          border: '1px solid rgba(248, 113, 113, 0.4)',
-          boxShadow: '0 0 40px rgba(248, 113, 113, 0.2)',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid rgba(185, 28, 28, 0.3)',
+          boxShadow: 'var(--shadow-lg)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -117,30 +117,30 @@ export const EmergencyModal = ({ isOpen, onClose }) => {
             Immediate Triage Checklist
           </h4>
 
-          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ color: 'var(--primary-accent)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>01</div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Freeze Bank Accounts & UPI PINs</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>Freeze Bank Accounts & UPI PINs</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Open your bank app or dial customer care to lock netbanking, block debit/credit cards, and reset UPI PINs.
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ color: 'var(--primary-accent)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>02</div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>Preserve All Digital Evidence</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>Preserve All Digital Evidence</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Take screenshots of chat threads, UPI transaction reference numbers (UTR), SMS receipts, and suspect phone numbers.
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', gap: '12px', padding: '12px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ color: 'var(--primary-accent)', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>03</div>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>File an Official NCRP FIR</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)' }}>File an Official NCRP FIR</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Visit cybercrime.gov.in to lodge a formal complaint, which coordinates across participating beneficiary banks.
               </div>

@@ -63,11 +63,11 @@ export const Analytics = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <BarChart3 size={18} style={{ color: 'var(--primary-accent)' }} />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              ScamTrace Analytics Engine
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+              ShieldNet Threat Analytics Engine
             </span>
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
             Systemic Threat & Trend Analytics
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -132,7 +132,7 @@ export const Analytics = () => {
                       <XAxis type="number" stroke="#94A3B8" fontSize={11} />
                       <YAxis dataKey="category" type="category" stroke="#94A3B8" fontSize={11} width={130} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#172033', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                       />
                       <Bar dataKey="count" fill="var(--primary-accent)" radius={[0, 4, 4, 0]} />
                     </BarChart>
@@ -173,7 +173,7 @@ export const Analytics = () => {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#172033', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                       />
                       <Legend />
                     </PieChart>
@@ -201,11 +201,11 @@ export const Analytics = () => {
               <div style={{ height: '260px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.transactionTrends || data.timeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                    <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} />
-                    <YAxis stroke="#94A3B8" fontSize={11} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                    <XAxis dataKey="date" stroke="#64748B" fontSize={11} />
+                    <YAxis stroke="#64748B" fontSize={11} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#172033', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#FFFFFF', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                     />
                     <Line type="monotone" dataKey="volume" stroke="#34D399" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     <Line type="monotone" dataKey="amount" stroke="#38BDF8" strokeWidth={2} dot={false} />
@@ -251,7 +251,7 @@ export const Analytics = () => {
                     {data.topEntities.map((ent, idx) => (
                       <tr
                         key={ent.id || idx}
-                        style={{ borderBottom: '1px solid #111827' }}
+                        style={{ borderBottom: '1px solid var(--border-color)' }}
                       >
                         <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {ent.identifier || ent.id}

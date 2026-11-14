@@ -28,17 +28,17 @@ export const ReportPreview = ({
           <Eye size={20} />
         </div>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-heading)' }}>
             Review Incident Intelligence Data
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Inspect exactly what information will be logged and what will be transferred to ScamTrace.
+            Inspect exactly what information will be logged and what will be transferred to ShieldNet Intelligence.
           </p>
         </div>
       </div>
 
       {/* Structured Details Preview */}
-      <div style={{ backgroundColor: '#0D1527', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
         <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-accent)', marginBottom: '12px', textTransform: 'uppercase' }}>
           Incident Data Summary
         </h4>
@@ -96,19 +96,19 @@ export const ReportPreview = ({
         style={{
           padding: '16px',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: '#111827',
+          backgroundColor: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
           <Lock size={16} style={{ color: 'var(--accent-green)' }} />
-          <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            What ScamTrace Will Receive Upon Consent
+          <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
+            What ShieldNet Intelligence Will Receive Upon Consent
           </h4>
         </div>
 
         <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <li>Threat indicators (Phone numbers, URLs, UPI handles) are hashed and indexed in ScamTrace graph.</li>
+          <li>Threat indicators (Phone numbers, URLs, UPI handles) are hashed and indexed in ShieldNet threat graph.</li>
           <li>No personal victim names, passwords, PINs, or private chat history are ever transferred.</li>
           <li>Correlated data helps law enforcement and other citizens recognize identical fraud networks.</li>
         </ul>
@@ -121,8 +121,8 @@ export const ReportPreview = ({
           gap: '12px',
           padding: '16px',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: consentGiven ? 'rgba(56, 189, 248, 0.08)' : 'rgba(248, 113, 113, 0.06)',
-          border: consentGiven ? '1px solid var(--primary-accent)' : '1px solid rgba(248, 113, 113, 0.3)',
+          backgroundColor: consentGiven ? 'var(--primary-accent-light)' : 'var(--accent-critical-bg)',
+          border: consentGiven ? '1px solid var(--primary-accent)' : '1px solid rgba(185, 28, 28, 0.25)',
           cursor: 'pointer',
           transition: 'all 0.2s ease',
         }}
@@ -132,11 +132,11 @@ export const ReportPreview = ({
           {consentGiven ? <CheckSquare size={20} /> : <Square size={20} />}
         </div>
         <div>
-          <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer', display: 'block' }}>
-            I grant explicit consent to share these threat indicators with the ScamTrace intelligence network.
+          <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)', cursor: 'pointer', display: 'block' }}>
+            I grant explicit consent to share these threat indicators with the ShieldNet intelligence network.
           </label>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            If unchecked, this report remains stored locally in ScamShield only and is NOT forwarded to the investigative network mapper.
+            If unchecked, this report remains stored locally within ShieldNet and is NOT shared with the public threat network.
           </p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export const ReportPreview = ({
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting ? 'Submitting Report...' : consentGiven ? 'Confirm & Share with ScamTrace' : 'Save Locally in ScamShield'}
+          {isSubmitting ? 'Submitting Report...' : consentGiven ? 'Confirm & Share with Threat Network' : 'Save Locally in ShieldNet'}
         </button>
       </div>
     </div>

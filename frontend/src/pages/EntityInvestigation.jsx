@@ -180,22 +180,22 @@ export const EntityInvestigation = () => {
           </h3>
 
           <div className="grid-3">
-            <div style={{ padding: '12px', backgroundColor: '#0D1527', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>REPUTATION VELOCITY</span>
-              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <div style={{ padding: '14px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontWeight: 600 }}>REPUTATION VELOCITY</span>
+              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-heading)' }}>
                 {entity.riskBreakdown?.reputation || entity.reputation || 'High Signal Velocity'}
               </span>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#0D1527', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>GRAPH CENTRALITY</span>
-              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent-purple)' }}>
+            <div style={{ padding: '14px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontWeight: 600 }}>GRAPH CENTRALITY</span>
+              <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-accent)' }}>
                 {entity.riskBreakdown?.centrality || 'Syndicate Hub (0.84)'}
               </span>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#0D1527', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>CONSENTED COMPLAINTS</span>
+            <div style={{ padding: '14px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontWeight: 600 }}>CONSENTED COMPLAINTS</span>
               <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent-orange)' }}>
                 {entity.reportCount || entity.associatedReports?.length || 0} Registered
               </span>
@@ -230,8 +230,8 @@ export const EntityInvestigation = () => {
                 {connections.map((c, idx) => (
                   <tr
                     key={c.id || idx}
-                    style={{ borderBottom: '1px solid #111827', cursor: 'pointer', transition: 'background-color 0.15s' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0D1527')}
+                    style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer', transition: 'background-color 0.15s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -284,7 +284,7 @@ export const EntityInvestigation = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '10px 14px',
-                  backgroundColor: '#0D1527',
+                  backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
                   borderRadius: '6px',
                   fontSize: '12px',

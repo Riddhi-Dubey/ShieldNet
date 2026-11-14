@@ -226,11 +226,11 @@ export const CaseManagement = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <Briefcase size={18} style={{ color: 'var(--primary-accent)' }} />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              ScamTrace Intelligence Workspace
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+              ShieldNet Investigation Workspace
             </span>
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
             Investigation Case Management
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -332,7 +332,7 @@ export const CaseManagement = () => {
                         fontFamily: 'var(--font-mono)',
                         padding: '3px 8px',
                         borderRadius: '4px',
-                        backgroundColor: '#0D1527',
+                        backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         color: c.status === 'ESCALATED' ? 'var(--accent-critical)' : 'var(--text-secondary)',
                       }}
@@ -430,14 +430,14 @@ export const CaseManagement = () => {
             </div>
 
             {/* Quick Status / Priority Controls */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: '#0D1527', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', backgroundColor: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-md)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Status:</span>
                 <select
                   value={activeCase.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   style={{
-                    backgroundColor: '#111827',
+                    backgroundColor: '#FFFFFF',
                     border: '1px solid var(--border-color)',
                     color: 'var(--text-primary)',
                     borderRadius: '4px',
@@ -459,7 +459,7 @@ export const CaseManagement = () => {
                   value={activeCase.priority}
                   onChange={(e) => handlePriorityChange(e.target.value)}
                   style={{
-                    backgroundColor: '#111827',
+                    backgroundColor: '#FFFFFF',
                     border: '1px solid var(--border-color)',
                     color: 'var(--text-primary)',
                     borderRadius: '4px',
@@ -484,7 +484,7 @@ export const CaseManagement = () => {
               </div>
 
               {activeCase.entities.length === 0 ? (
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '12px', backgroundColor: '#0D1527', borderRadius: '6px', textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '12px', backgroundColor: 'var(--bg-secondary)', borderRadius: '6px', textAlign: 'center' }}>
                   No suspect entities attached to this case yet.
                 </div>
               ) : (
@@ -494,7 +494,7 @@ export const CaseManagement = () => {
                       key={ent.id}
                       style={{
                         padding: '10px 12px',
-                        backgroundColor: '#0D1527',
+                        backgroundColor: 'var(--bg-secondary)',
                         borderRadius: '6px',
                         border: '1px solid var(--border-color)',
                         display: 'flex',
@@ -522,7 +522,7 @@ export const CaseManagement = () => {
                         <button
                           onClick={() => navigate(`/trace/investigate/${encodeURIComponent(ent.entity_id)}`)}
                           className="btn btn-secondary"
-                          title="Investigate in ScamTrace"
+                          title="Investigate in ShieldNet"
                           style={{ padding: '4px 8px', fontSize: '11px' }}
                         >
                           <ExternalLink size={12} />
@@ -574,7 +574,7 @@ export const CaseManagement = () => {
                     key={n.note_id}
                     style={{
                       padding: '8px 12px',
-                      backgroundColor: '#111827',
+                      backgroundColor: 'var(--bg-secondary)',
                       borderRadius: '6px',
                       border: '1px solid var(--border-color)',
                       fontSize: '12px',
@@ -633,7 +633,7 @@ export const CaseManagement = () => {
         >
           <div
             className="cyber-card"
-            style={{ width: '100%', maxWidth: '540px', backgroundColor: '#0B1020', border: '1px solid var(--primary-accent)' }}
+            style={{ width: '100%', maxWidth: '540px', backgroundColor: '#FFFFFF', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -93,11 +93,11 @@ export const Quiz = () => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <HelpCircle size={18} style={{ color: 'var(--primary-accent)' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            ScamShield Citizen Education
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            ShieldNet Citizen Education
           </span>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
           Scam Awareness & Defensive Readiness Quiz
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -118,7 +118,7 @@ export const Quiz = () => {
               fontWeight: 600,
               cursor: 'pointer',
               border: selectedTopic === t.id ? '1px solid var(--primary-accent)' : '1px solid var(--border-color)',
-              backgroundColor: selectedTopic === t.id ? 'rgba(56, 189, 248, 0.15)' : '#111827',
+              backgroundColor: selectedTopic === t.id ? 'var(--primary-accent-light)' : 'var(--bg-secondary)',
               color: selectedTopic === t.id ? 'var(--primary-accent)' : 'var(--text-secondary)',
               transition: 'all 0.15s ease',
             }}
@@ -245,22 +245,22 @@ export const Quiz = () => {
                     const isSelected = selectedOpt === optIdx;
                     const isRevealedCorrect = submissionResult && correctOptionIndex === optIdx;
 
-                    let optBg = '#0D1527';
+                    let optBg = 'var(--bg-secondary)';
                     let optBorder = 'var(--border-color)';
                     let optColor = 'var(--text-primary)';
 
                     if (submissionResult) {
                       if (isRevealedCorrect) {
-                        optBg = 'rgba(52, 211, 153, 0.15)';
+                        optBg = 'var(--accent-green-bg)';
                         optBorder = 'var(--accent-green)';
                         optColor = 'var(--accent-green)';
                       } else if (isSelected && !isCorrect) {
-                        optBg = 'rgba(248, 113, 113, 0.15)';
+                        optBg = 'var(--accent-critical-bg)';
                         optBorder = 'var(--accent-critical)';
                         optColor = 'var(--accent-critical)';
                       }
                     } else if (isSelected) {
-                      optBg = 'rgba(56, 189, 248, 0.15)';
+                      optBg = 'var(--primary-accent-light)';
                       optBorder = 'var(--primary-accent)';
                     }
 
@@ -312,7 +312,7 @@ export const Quiz = () => {
                       marginTop: '16px',
                       padding: '12px 14px',
                       borderRadius: 'var(--radius-md)',
-                      backgroundColor: '#111827',
+                      backgroundColor: 'var(--bg-secondary)',
                       border: '1px solid var(--border-color)',
                       fontSize: '12px',
                       color: 'var(--text-secondary)',

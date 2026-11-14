@@ -62,13 +62,13 @@ export const Dashboard = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <span className="pulse-dot pulse-dot-purple" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Demonstration & Research Sandbox Stream
+            <span className="pulse-dot pulse-dot-green" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+              ShieldNet Threat Stream & Research Sandbox
             </span>
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
-            ScamTrace Intelligence Dashboard
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
+            Threat Intelligence Dashboard
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             Demonstrative network mapping, syndicate cluster discovery, and simulated threat indicators.
@@ -115,13 +115,13 @@ export const Dashboard = () => {
       </div>
 
       {/* Quick Universal Search Bar */}
-      <div className="cyber-card" style={{ padding: '20px', backgroundColor: '#0F172A' }}>
+      <div className="cyber-card" style={{ padding: '20px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
         <div style={{ marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-heading)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Search size={16} style={{ color: 'var(--primary-accent)' }} />
             Quick Entity Lookup
           </h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
             Query any suspect phone, UPI handle, lookalike domain, or crypto wallet in real-time.
           </p>
         </div>
@@ -213,7 +213,7 @@ export const Dashboard = () => {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#172033', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                       />
                       <Legend />
                     </PieChart>
@@ -242,7 +242,7 @@ export const Dashboard = () => {
                       <XAxis dataKey="level" stroke="#94A3B8" fontSize={12} />
                       <YAxis stroke="#94A3B8" fontSize={12} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#172033', borderColor: '#1E293B', color: '#F8FAFC', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}
                       />
                       <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                         {(stats.riskDistribution || stats.risk_distribution).map((entry, index) => {
@@ -287,7 +287,7 @@ export const Dashboard = () => {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '12px 14px',
-                        backgroundColor: '#0D1527',
+                        backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
                         cursor: 'pointer',
@@ -333,7 +333,7 @@ export const Dashboard = () => {
                       key={idx}
                       style={{
                         padding: '10px 12px',
-                        backgroundColor: '#111827',
+                        backgroundColor: 'var(--bg-secondary)',
                         borderLeft: `3px solid ${act.severity === 'critical' ? 'var(--accent-critical)' : 'var(--primary-accent)'}`,
                         borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
                         fontSize: '12px',

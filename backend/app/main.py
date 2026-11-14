@@ -27,21 +27,21 @@ from backend.app.api import (
 # App Lifespan: Auto-initializes database schema & synthetic demonstration records
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting ScamShield + ScamTrace backend...")
+    print("Starting ShieldNet backend...")
     try:
         init_db()
     except Exception as e:
         print(f"Startup Warning: Database initialization error: {e}")
     yield
-    print("Shutting down ScamShield + ScamTrace backend...")
+    print("Shutting down ShieldNet backend...")
 
 
 app = FastAPI(
-    title="ScamShield + Intelligent Scam Network Mapper",
+    title="ShieldNet — Cybersecurity Intelligence Platform",
     description=(
-        "Dual-module cybersecurity platform: "
-        "1. ScamShield — digital scam detection, explainable message/URL analysis, and user protection. "
-        "2. ScamTrace — entity investigation, multi-hop graph intelligence, and threat network mapping."
+        "Unified Cybersecurity Intelligence Platform: "
+        "1. Citizen Protection — digital scam detection, explainable message/URL analysis, and user defense. "
+        "2. Network Intelligence — entity investigation, multi-hop graph intelligence, and scam network mapping."
     ),
     version="1.0.0",
     lifespan=lifespan

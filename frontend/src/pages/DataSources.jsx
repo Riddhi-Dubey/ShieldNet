@@ -78,7 +78,7 @@ export const DataSources = () => {
         setUploadProgress(progress);
       });
 
-      setUploadSuccess(res.message || `Successfully ingested ${selectedFile.name} into ScamTrace.`);
+      setUploadSuccess(res.message || `Successfully ingested ${selectedFile.name} into ShieldNet.`);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       fetchStatus(); // Refresh datasets table
@@ -114,7 +114,7 @@ export const DataSources = () => {
       </div>
 
       {/* CSV Ingestion Dropzone Card */}
-      <div className="cyber-card" style={{ backgroundColor: '#0F172A', border: '1px solid var(--border-glow)' }}>
+      <div className="cyber-card" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <Upload size={18} style={{ color: 'var(--primary-accent)' }} />
           <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -158,7 +158,7 @@ export const DataSources = () => {
                 <span style={{ color: 'var(--text-secondary)' }}>Streaming & Parsing Indicators...</span>
                 <span style={{ color: 'var(--primary-accent)', fontFamily: 'var(--font-mono)' }}>{uploadProgress}%</span>
               </div>
-              <div style={{ height: '6px', backgroundColor: '#111827', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '6px', backgroundColor: 'var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
                 <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--primary-accent)', transition: 'width 0.2s' }} />
               </div>
             </div>
@@ -166,7 +166,7 @@ export const DataSources = () => {
 
           {/* Upload Success Alert */}
           {uploadSuccess && (
-            <div style={{ padding: '10px 14px', borderRadius: '6px', backgroundColor: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.3)', color: 'var(--accent-green)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', borderRadius: '6px', backgroundColor: 'var(--accent-green-bg)', border: '1px solid rgba(21, 128, 61, 0.25)', color: 'var(--accent-green)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle2 size={16} />
               <span>{uploadSuccess}</span>
             </div>
@@ -174,7 +174,7 @@ export const DataSources = () => {
 
           {/* Upload Error Alert */}
           {uploadError && (
-            <div style={{ padding: '10px 14px', borderRadius: '6px', backgroundColor: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)', color: 'var(--accent-critical)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', borderRadius: '6px', backgroundColor: 'var(--accent-critical-bg)', border: '1px solid rgba(185, 28, 28, 0.25)', color: 'var(--accent-critical)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircle size={16} />
               <span>{uploadError}</span>
             </div>
@@ -196,7 +196,7 @@ export const DataSources = () => {
       {/* Datasets Table */}
       <div className="cyber-card">
         <div style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-heading)' }}>
             Active Intelligence Repositories
           </h3>
           <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -213,7 +213,7 @@ export const DataSources = () => {
         )}
 
         {loading ? (
-          <LoadingState message="Querying dataset registry from /api/datasets/status..." />
+          <LoadingState message="Querying dataset registry from ShieldNet API..." />
         ) : datasets.length > 0 ? (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
@@ -231,7 +231,7 @@ export const DataSources = () => {
                 {datasets.map((d, idx) => (
                   <tr
                     key={d.id || idx}
-                    style={{ borderBottom: '1px solid #111827' }}
+                    style={{ borderBottom: '1px solid var(--border-color)' }}
                   >
                     <td style={{ padding: '14px 12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -273,7 +273,7 @@ export const DataSources = () => {
             </table>
           </div>
         ) : (
-          <EmptyState message="No datasets currently registered in ScamTrace." />
+          <EmptyState message="No datasets currently registered in ShieldNet." />
         )}
       </div>
     </div>

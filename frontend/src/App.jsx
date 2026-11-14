@@ -43,14 +43,14 @@ const AppContent = ({ onOpenEmergency, onOpenPrivacy }) => {
           {/* Landing Page */}
           <Route path="/" element={<Landing />} />
 
-          {/* ScamShield Modules */}
+          {/* Citizen Protection Modules */}
           <Route path="/shield/message" element={<MessageChecker />} />
           <Route path="/shield/url" element={<URLChecker />} />
           <Route path="/shield/chat" element={<Chatbot />} />
           <Route path="/shield/quiz" element={<Quiz />} />
           <Route path="/shield/report" element={<ReportForm />} />
 
-          {/* ScamTrace Modules */}
+          {/* Network Intelligence Modules */}
           <Route path="/trace/dashboard" element={<Dashboard />} />
           <Route path="/trace/search" element={<InvestigationSearch />} />
           <Route path="/trace/cases" element={<CaseManagement />} />

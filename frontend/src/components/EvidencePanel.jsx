@@ -37,7 +37,7 @@ export const EvidencePanel = ({
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '12px',
           padding: '14px',
-          backgroundColor: '#0D1527',
+          backgroundColor: 'var(--bg-secondary)',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border-color)',
         }}
@@ -85,7 +85,7 @@ export const EvidencePanel = ({
                 key={report.id || idx}
                 style={{
                   padding: '10px 12px',
-                  backgroundColor: '#111827',
+                  backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
                   borderRadius: 'var(--radius-sm)',
                   fontSize: '12px',
@@ -95,7 +95,7 @@ export const EvidencePanel = ({
                   <span style={{ fontFamily: 'var(--font-mono)' }}>Ref #{report.id || `INC-${1000 + idx}`}</span>
                   <span>{report.date || 'Recent'}</span>
                 </div>
-                <div style={{ color: 'var(--text-primary)' }}>{report.description || report.summary || 'Consented incident report submitted via ScamShield.'}</div>
+                <div style={{ color: 'var(--text-primary)' }}>{report.description || report.summary || 'Consented incident report submitted via ShieldNet.'}</div>
               </div>
             ))}
           </div>

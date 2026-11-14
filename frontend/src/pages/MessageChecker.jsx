@@ -72,12 +72,12 @@ export const MessageChecker = () => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <ShieldCheck size={18} style={{ color: 'var(--primary-accent)' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            ScamShield Citizen Defense
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            ShieldNet Citizen Defense
           </span>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
-          AI Message Threat Checker
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
+          AI Message Threat Scanner
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
           Analyze suspicious SMS messages, WhatsApp requests, lottery notifications, or job offers before you respond.
@@ -163,12 +163,12 @@ export const MessageChecker = () => {
                   type="button"
                   onClick={() => handleUseSample(s)}
                   style={{
-                    backgroundColor: '#111827',
+                    backgroundColor: 'var(--bg-secondary)',
                     border: '1px solid var(--border-color)',
                     color: 'var(--text-secondary)',
                     borderRadius: '20px',
-                    padding: '4px 12px',
-                    fontSize: '11px',
+                    padding: '5px 13px',
+                    fontSize: '11.5px',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -280,7 +280,7 @@ export const MessageChecker = () => {
                     key={idx}
                     style={{
                       padding: '12px 16px',
-                      backgroundColor: '#0D1527',
+                      backgroundColor: 'var(--bg-secondary)',
                       border: '1px solid var(--border-color)',
                       borderLeft: '4px solid var(--accent-warning)',
                       borderRadius: 'var(--radius-sm)',
@@ -330,7 +330,7 @@ export const MessageChecker = () => {
                     fontSize: '13px',
                     color: 'var(--text-secondary)',
                     padding: '8px 12px',
-                    backgroundColor: '#111827',
+                    backgroundColor: 'var(--bg-secondary)',
                     borderRadius: '6px',
                   }}
                 >
@@ -346,8 +346,8 @@ export const MessageChecker = () => {
             style={{
               padding: '16px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: '#0D1527',
-              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--primary-accent-light)',
+              border: '1px solid rgba(57, 127, 120, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',

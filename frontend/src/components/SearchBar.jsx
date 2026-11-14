@@ -65,11 +65,11 @@ export const SearchBar = ({ onSearch, initialQuery = '', initialType = 'auto', p
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#0D1527',
+            backgroundColor: '#FFFFFF',
             border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-lg)',
             padding: '6px 12px',
-            boxShadow: 'var(--shadow-md)',
+            boxShadow: 'var(--shadow-sm)',
             transition: 'border-color 0.2s',
           }}
           className="search-bar-container"
@@ -119,7 +119,7 @@ export const SearchBar = ({ onSearch, initialQuery = '', initialType = 'auto', p
                 fontSize: '11px',
                 fontWeight: 600,
                 color: 'var(--primary-accent)',
-                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                backgroundColor: 'var(--primary-accent-light)',
                 padding: '4px 8px',
                 borderRadius: '6px',
                 marginRight: '8px',
@@ -170,7 +170,7 @@ export const SearchBar = ({ onSearch, initialQuery = '', initialType = 'auto', p
                   borderRadius: '20px',
                   cursor: 'pointer',
                   border: isSelected ? '1px solid var(--primary-accent)' : '1px solid var(--border-color)',
-                  backgroundColor: isSelected ? 'rgba(56, 189, 248, 0.12)' : '#111827',
+                  backgroundColor: isSelected ? 'var(--primary-accent-light)' : '#FFFFFF',
                   color: isSelected ? 'var(--primary-accent)' : 'var(--text-secondary)',
                   transition: 'all 0.15s ease',
                 }}

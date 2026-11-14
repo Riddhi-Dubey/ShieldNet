@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Shield, 
@@ -7,196 +7,109 @@ import {
   Lock, 
   Menu, 
   X, 
-  Activity, 
-  ChevronRight,
-  AlertTriangle,
-  ExternalLink
+  Search,
+  MessageSquare,
+  Globe,
+  Briefcase
 } from 'lucide-react';
-import { getHealth } from '../services/api';
 
 export const Navbar = ({ onOpenEmergency, onOpenPrivacy }) => {
   const location = useLocation();
-  const [backendStatus, setBackendStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [retryAttempt, setRetryAttempt] = useState(0);
 
-  useEffect(() => {
-    let isMounted = true;
-    let timer = null;
-
-    const checkStatus = async () => {
-      try {
-        await getHealth();
-        if (isMounted) {
-          setBackendStatus('connected');
-          // Once connected, check less frequently (every 30s)
-          timer = setTimeout(checkStatus, 30000);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setBackendStatus((prev) => (prev === 'connected' ? 'offline' : 'checking'));
-          // When warming up or offline, poll every 4s to catch server as soon as it boots
-          timer = setTimeout(checkStatus, 4000);
-        }
-      }
-    };
-
-    checkStatus();
-
-    return () => {
-      isMounted = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [retryAttempt]);
-
-  const handleManualRetry = () => {
-    setBackendStatus('checking');
-    setRetryAttempt((prev) => prev + 1);
-  };
-
-  const isScamShield = location.pathname.startsWith('/shield');
-  const isScamTrace = location.pathname.startsWith('/trace');
+  const navLinks = [
+    { label: 'Overview', path: '/' },
+    { label: 'Message Scanner', path: '/shield/message', icon: MessageSquare },
+    { label: 'URL Scanner', path: '/shield/url', icon: Globe },
+    { label: 'Network Mapper', path: '/trace/graph', icon: Network },
+    { label: 'Universal Search', path: '/trace/search', icon: Search },
+    { label: 'Investigation Cases', path: '/trace/cases', icon: Briefcase },
+  ];
 
   return (
     <header
       style={{
         height: '68px',
-        backgroundColor: '#0B1020',
+        backgroundColor: '#FFFFFF',
         borderBottom: '1px solid var(--border-color)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 28px',
+        padding: '0 32px',
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        boxShadow: 'var(--shadow-xs)',
       }}
     >
-      {/* Brand & Module Switcher */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+      {/* Brand */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '11px', textDecoration: 'none' }}>
           <div
             style={{
               width: '38px',
               height: '38px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #38BDF8 0%, #1E40AF 100%)',
+              backgroundColor: 'var(--primary-accent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#0B1020',
-              boxShadow: '0 0 15px rgba(56, 189, 248, 0.4)',
+              color: '#FFFFFF',
+              boxShadow: '0 2px 6px rgba(57, 127, 120, 0.25)',
             }}
           >
-            <Shield size={22} strokeWidth={2.5} color="#0B1020" />
+            <Shield size={22} strokeWidth={2.4} color="#FFFFFF" />
           </div>
           <div>
-            <div style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', lineHeight: 1.1 }}>
-              ScamShield <span style={{ color: 'var(--primary-accent)', fontWeight: 400 }}>|</span> ScamTrace
+            <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-heading)', lineHeight: 1.1 }}>
+              ShieldNet
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Cyber Intelligence Platform
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              Cybersecurity Intelligence Platform
             </div>
           </div>
         </Link>
 
-        {/* Top Module Segmented Switch */}
-        <div
-          style={{
-            display: 'flex',
-            backgroundColor: '#111827',
-            padding: '3px',
-            borderRadius: '10px',
-            border: '1px solid var(--border-color)',
-          }}
-          className="desktop-only"
-        >
-          <Link
-            to="/shield/message"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              color: isScamShield ? '#0B1020' : 'var(--text-secondary)',
-              backgroundColor: isScamShield ? 'var(--primary-accent)' : 'transparent',
-              transition: 'all 0.2s',
-            }}
-          >
-            <Shield size={14} />
-            ScamShield (Protection)
-          </Link>
-
-          <Link
-            to="/trace/dashboard"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              color: isScamTrace ? '#ffffff' : 'var(--text-secondary)',
-              backgroundColor: isScamTrace ? '#7C3AED' : 'transparent',
-              transition: 'all 0.2s',
-            }}
-          >
-            <Network size={14} />
-            ScamTrace (Investigation)
-          </Link>
-        </div>
-      </div>
-
-      {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Backend Status indicator */}
-        <div
-          onClick={backendStatus !== 'connected' ? handleManualRetry : undefined}
+        {/* Desktop Navigation Links */}
+        <nav
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            fontSize: '12px',
-            padding: '5px 12px',
-            borderRadius: '20px',
-            backgroundColor: '#111827',
-            border: backendStatus === 'connected' ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(251, 146, 60, 0.4)',
-            cursor: backendStatus !== 'connected' ? 'pointer' : 'default',
-            transition: 'all 0.2s',
+            gap: '4px',
           }}
-          title={
-            backendStatus === 'connected'
-              ? 'FastAPI Cloud Backend Online (Health Verified)'
-              : 'Cloud Backend Warming Up from Standby (Render free-tier cold-start takes ~25s on first visit). Click to retry ping.'
-          }
+          className="desktop-only"
         >
-          <span
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor:
-                backendStatus === 'connected'
-                  ? 'var(--accent-green)'
-                  : 'var(--accent-warning)',
-              boxShadow:
-                backendStatus === 'connected'
-                  ? '0 0 8px var(--accent-green)'
-                  : '0 0 6px rgba(251, 146, 60, 0.6)',
-              animation: backendStatus !== 'connected' ? 'pulse 1.5s infinite' : 'none',
-            }}
-          />
-          <span style={{ color: backendStatus === 'connected' ? 'var(--text-primary)' : 'var(--accent-warning)', fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-            {backendStatus === 'connected' ? 'API: ONLINE' : 'API: WARMING UP...'}
-          </span>
-        </div>
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.path;
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 700 : 500,
+                  textDecoration: 'none',
+                  color: isActive ? 'var(--primary-accent)' : 'var(--text-secondary)',
+                  backgroundColor: isActive ? 'var(--primary-accent-light)' : 'transparent',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {Icon && <Icon size={14} style={{ color: isActive ? 'var(--primary-accent)' : 'var(--text-muted)' }} />}
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
+      {/* Right Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Emergency Help Button */}
         <button
           onClick={onOpenEmergency}
@@ -204,42 +117,104 @@ export const Navbar = ({ onOpenEmergency, onOpenPrivacy }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            backgroundColor: 'rgba(248, 113, 113, 0.12)',
+            backgroundColor: 'var(--accent-critical-bg)',
             color: 'var(--accent-critical)',
-            border: '1px solid rgba(248, 113, 113, 0.35)',
-            borderRadius: '8px',
-            padding: '6px 12px',
-            fontSize: '12px',
+            border: '1px solid rgba(185, 28, 28, 0.22)',
+            borderRadius: 'var(--radius-md)',
+            padding: '7px 13px',
+            fontSize: '12.5px',
             fontWeight: 700,
             cursor: 'pointer',
-            transition: 'all 0.2s',
+            transition: 'all 0.18s ease',
           }}
+          title="Indian National Cyber Crime Helpline (Toll-Free 24x7)"
         >
           <PhoneCall size={14} />
           Emergency 1930
         </button>
 
-        {/* Privacy & Consent Button */}
+        {/* Privacy & Limits Button */}
         <button
           onClick={onOpenPrivacy}
-          title="Privacy and Consent Architecture"
+          title="ShieldNet Privacy Architecture & Verification"
           style={{
-            background: 'transparent',
+            background: '#FFFFFF',
             border: '1px solid var(--border-color)',
             color: 'var(--text-secondary)',
-            borderRadius: '8px',
-            padding: '6px 10px',
+            borderRadius: 'var(--radius-md)',
+            padding: '7px 12px',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            fontSize: '12px',
+            fontSize: '12.5px',
+            fontWeight: 600,
             cursor: 'pointer',
+            boxShadow: 'var(--shadow-xs)',
+            transition: 'all 0.18s ease',
           }}
         >
-          <Lock size={13} />
-          Privacy
+          <Lock size={13} style={{ color: 'var(--primary-accent)' }} />
+          Privacy & Proof
+        </button>
+
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="mobile-only"
+          style={{
+            background: 'none',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '6px',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+          }}
+          aria-label="Toggle Navigation"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '68px',
+            left: 0,
+            right: 0,
+            backgroundColor: '#FFFFFF',
+            borderBottom: '1px solid var(--border-color)',
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            boxShadow: 'var(--shadow-md)',
+          }}
+        >
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '14px',
+                fontWeight: location.pathname === link.path ? 700 : 500,
+                color: location.pathname === link.path ? 'var(--primary-accent)' : 'var(--text-primary)',
+                backgroundColor: location.pathname === link.path ? 'var(--primary-accent-light)' : 'transparent',
+                textDecoration: 'none',
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </header>
   );
 };

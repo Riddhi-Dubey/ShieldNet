@@ -29,9 +29,9 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: '#0F172A',
-          border: '1px solid rgba(56, 189, 248, 0.3)',
-          boxShadow: '0 0 40px rgba(56, 189, 248, 0.15)',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-lg)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -67,7 +67,7 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
             <Lock size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)' }}>
               Privacy, Verification & Consent Architecture
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -78,7 +78,7 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
           {/* Section 1: In-Memory / Zero Storage */}
-          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-green)', fontWeight: 700, marginBottom: '6px' }}>
               <EyeOff size={16} />
               <span>1. Zero-Storage Scanning: How It Works & How to Verify</span>
@@ -88,23 +88,23 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
             </p>
             <ul style={{ paddingLeft: '20px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li><strong>Zero Database Writes:</strong> The scanning endpoint (<code style={{ color: 'var(--primary-accent)' }}>POST /api/analyse/message</code>) does not accept or open any database session. 0 bytes are persisted to SQLite or disk logs.</li>
-              <li><strong>Zero Third-Party AI Leakage:</strong> Analysis runs purely on deterministic local heuristic pattern matchers. No user text is ever routed to external LLM APIs (OpenAI, Anthropic, Google).</li>
+              <li><strong>Zero Third-Party AI Leakage:</strong> Analysis runs purely on deterministic local machine learning and heuristic pattern matchers. No user text is ever routed to external cloud AI APIs.</li>
               <li><strong>Verification in Source Code:</strong> You can inspect <code style={{ color: 'var(--primary-accent)' }}>backend/app/api/scamshield.py</code> to verify that the analysis function operates with no database commit calls.</li>
             </ul>
           </div>
 
           {/* Section 2: Exact Data Scope When Consent Is Granted */}
-          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-accent)', fontWeight: 700, marginBottom: '6px' }}>
               <Database size={16} />
               <span>2. Incident Reporting: What Is Sent vs What Is Never Sent</span>
             </div>
             <p style={{ marginBottom: '8px' }}>
-              Only when you navigate to <em>Report-a-Scam</em> and explicitly toggle the consent checkbox is technical intelligence shared with ScamTrace:
+              Only when you navigate to <em>Report Incident</em> and explicitly toggle the consent checkbox is technical intelligence shared with the ShieldNet threat network:
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginTop: '8px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#0D1527', borderRadius: '6px', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+              <div style={{ padding: '10px', backgroundColor: '#FFFFFF', borderRadius: '6px', border: '1px solid rgba(21, 128, 61, 0.25)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-green)', fontWeight: 700, fontSize: '11px', marginBottom: '4px' }}>
                   <CheckCircle2 size={14} /> WHAT IS TRANSFERRED
                 </div>
@@ -116,7 +116,7 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
                 </ul>
               </div>
 
-              <div style={{ padding: '10px', backgroundColor: '#0D1527', borderRadius: '6px', border: '1px solid rgba(248, 113, 113, 0.2)' }}>
+              <div style={{ padding: '10px', backgroundColor: '#FFFFFF', borderRadius: '6px', border: '1px solid rgba(185, 28, 28, 0.25)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-critical)', fontWeight: 700, fontSize: '11px', marginBottom: '4px' }}>
                   <AlertOctagon size={14} /> WHAT IS PERMANENTLY STRIPPED
                 </div>
@@ -131,13 +131,13 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Section 3: Server-Side Consent Enforcement */}
-          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-purple)', fontWeight: 700, marginBottom: '6px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--secondary-accent)', fontWeight: 700, marginBottom: '6px' }}>
               <Server size={16} />
               <span>3. Server-Side Consent Gating</span>
             </div>
             <p>
-              Consent is enforced on the backend, not solely by a browser checkbox. If a submission arrives without an active server-side consent record, the threat indicators are <strong>permanently barred from the public ScamTrace graph</strong> and logged solely as an unshared citizen incident for user records.
+              Consent is enforced on the backend, not solely by a browser checkbox. If a submission arrives without an active server-side consent record, the threat indicators are <strong>permanently barred from the public ShieldNet graph</strong> and logged solely as an unshared citizen incident for user records.
             </p>
           </div>
         </div>

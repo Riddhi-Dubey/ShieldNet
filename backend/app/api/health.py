@@ -30,7 +30,7 @@ def get_health_status(db: Session = Depends(get_db)):
 
     return {
         "status": "HEALTHY" if db_ok else "DEGRADED",
-        "service": "ScamShield + Intelligent Scam Network Mapper",
+        "service": "ShieldNet Cybersecurity Intelligence Platform",
         "version": "1.0.0",
         "database": {
             "status": "UP" if db_ok else "DOWN",

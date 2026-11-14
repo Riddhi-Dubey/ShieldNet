@@ -130,23 +130,23 @@ export const ReportForm = () => {
           justifyContent: 'center',
           gap: '16px',
           padding: '12px',
-          backgroundColor: '#0D1527',
+          backgroundColor: 'var(--bg-secondary)',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border-color)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step === 'edit' ? 'var(--primary-accent)' : 'var(--text-muted)', fontWeight: 700, fontSize: '13px' }}>
-          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'edit' ? 'var(--primary-accent)' : '#1E293B', color: step === 'edit' ? '#0B1020' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>1</span>
+          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'edit' ? 'var(--primary-accent)' : 'var(--border-color)', color: step === 'edit' ? '#FFFFFF' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700 }}>1</span>
           Incident Details
         </div>
         <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--border-color)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step === 'preview' ? 'var(--primary-accent)' : 'var(--text-muted)', fontWeight: 700, fontSize: '13px' }}>
-          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'preview' ? 'var(--primary-accent)' : '#1E293B', color: step === 'preview' ? '#0B1020' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>2</span>
+          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'preview' ? 'var(--primary-accent)' : 'var(--border-color)', color: step === 'preview' ? '#FFFFFF' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700 }}>2</span>
           Preview & Consent
         </div>
         <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--border-color)' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step === 'success' ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 700, fontSize: '13px' }}>
-          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'success' ? 'var(--accent-green)' : '#1E293B', color: step === 'success' ? '#0B1020' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' }}>3</span>
+          <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: step === 'success' ? 'var(--accent-green)' : 'var(--border-color)', color: step === 'success' ? '#FFFFFF' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700 }}>3</span>
           Confirmation
         </div>
       </div>
@@ -350,10 +350,10 @@ export const ReportForm = () => {
               fontSize: '13px',
               fontFamily: 'var(--font-mono)',
               color: 'var(--primary-accent)',
-              backgroundColor: '#0D1527',
+              backgroundColor: 'var(--primary-accent-light)',
               padding: '8px 16px',
               borderRadius: '8px',
-              border: '1px solid var(--border-color)',
+              border: '1px solid rgba(57, 127, 120, 0.25)',
             }}
           >
             Incident ID: {submittedResponse?.id || submittedResponse?.report_id || `INC-${Date.now().toString().slice(-6)}`}
@@ -361,8 +361,8 @@ export const ReportForm = () => {
 
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '520px', lineHeight: 1.5 }}>
             {consentGiven
-              ? 'Your indicators have been hashed and integrated with ScamTrace to map threat clusters and warn prospective victims.'
-              : 'Your report is stored strictly within ScamShield. Per your decision, threat indicators were NOT shared with ScamTrace.'}
+              ? 'Your indicators have been hashed and integrated with ShieldNet Threat Intelligence to map threat clusters and warn prospective victims.'
+              : 'Your report is stored strictly within ShieldNet. Per your decision, threat indicators were NOT shared with external intelligence networks.'}
           </p>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>

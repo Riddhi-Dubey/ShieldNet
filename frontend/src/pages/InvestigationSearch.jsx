@@ -85,12 +85,12 @@ export const InvestigationSearch = () => {
       {/* Header */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <Search size={18} style={{ color: 'var(--accent-purple)' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            ScamTrace Universal Intelligence Engine
+          <Search size={18} style={{ color: 'var(--primary-accent)' }} />
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            ShieldNet Universal Intelligence Engine
           </span>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
           Universal Entity Investigation Search
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -99,7 +99,7 @@ export const InvestigationSearch = () => {
       </div>
 
       {/* Main Search Bar Card */}
-      <div className="cyber-card" style={{ padding: '24px', backgroundColor: '#0F172A' }}>
+      <div className="cyber-card" style={{ padding: '24px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
         <SearchBar
           onSearch={handleSearchSubmit}
           initialQuery={initialQuery}
@@ -128,7 +128,7 @@ export const InvestigationSearch = () => {
           style={{
             textAlign: 'center',
             padding: '50px 24px',
-            backgroundColor: '#0D1527',
+            backgroundColor: '#FFFFFF',
           }}
         >
           <div
@@ -136,7 +136,7 @@ export const InvestigationSearch = () => {
               width: '50px',
               height: '50px',
               borderRadius: '12px',
-              backgroundColor: '#1E293B',
+              backgroundColor: 'var(--bg-secondary)',
               color: 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
@@ -147,7 +147,7 @@ export const InvestigationSearch = () => {
             <Inbox size={26} />
           </div>
 
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '8px' }}>
             No Matching Records — Assessed as UNVERIFIED / INSUFFICIENT EVIDENCE
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.5 }}>
@@ -156,8 +156,8 @@ export const InvestigationSearch = () => {
           <div
             style={{
               padding: '10px 14px',
-              backgroundColor: 'rgba(251, 191, 36, 0.08)',
-              border: '1px solid rgba(251, 191, 36, 0.25)',
+              backgroundColor: 'var(--accent-warning-bg)',
+              border: '1px solid rgba(180, 83, 9, 0.25)',
               borderRadius: '6px',
               maxWidth: '520px',
               margin: '0 auto 20px',
@@ -167,7 +167,7 @@ export const InvestigationSearch = () => {
               lineHeight: 1.45,
             }}
           >
-            <strong>Important Investigative Notice:</strong> Absence of records in ScamTrace does NOT indicate that an identifier is safe or legitimate. Newly created scam infrastructure or freshly purchased SIM cards often have zero prior records. Always exercise vigilance.
+            <strong>Important Investigative Notice:</strong> Absence of records in ShieldNet does NOT indicate that an identifier is safe or legitimate. Newly created scam infrastructure or freshly purchased SIM cards often have zero prior records. Always exercise vigilance.
           </div>
 
           <button
@@ -214,8 +214,8 @@ export const InvestigationSearch = () => {
                           width: '42px',
                           height: '42px',
                           borderRadius: '10px',
-                          backgroundColor: '#111827',
-                          border: '1px solid var(--border-color)',
+                          backgroundColor: 'var(--primary-accent-light)',
+                          border: '1px solid rgba(57, 127, 120, 0.25)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -236,7 +236,7 @@ export const InvestigationSearch = () => {
                             </span>
                           )}
                         </div>
-                        <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                           {entity.identifier || entity.id}
                         </h2>
                       </div>
@@ -261,7 +261,7 @@ export const InvestigationSearch = () => {
                       gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                       gap: '12px',
                       padding: '12px 16px',
-                      backgroundColor: '#0D1527',
+                      backgroundColor: 'var(--bg-secondary)',
                       borderRadius: 'var(--radius-md)',
                       fontSize: '12px',
                     }}
@@ -310,7 +310,7 @@ export const InvestigationSearch = () => {
                             fontSize: '11px',
                             fontFamily: 'var(--font-mono)',
                             color: 'var(--text-primary)',
-                            backgroundColor: '#111827',
+                            backgroundColor: 'var(--bg-secondary)',
                             border: '1px solid var(--border-color)',
                             padding: '3px 8px',
                             borderRadius: '4px',

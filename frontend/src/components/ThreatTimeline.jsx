@@ -41,7 +41,7 @@ export const ThreatTimeline = ({ events = [], loading = false }) => {
         style={{
           padding: '24px',
           textAlign: 'center',
-          backgroundColor: '#0D1527',
+          backgroundColor: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-md)',
           color: 'var(--text-muted)',
@@ -78,7 +78,7 @@ export const ThreatTimeline = ({ events = [], loading = false }) => {
               width: '24px',
               height: '24px',
               borderRadius: '50%',
-              backgroundColor: '#0B1020',
+              backgroundColor: '#FFFFFF',
               border: '2px solid var(--border-color)',
               display: 'flex',
               alignItems: 'center',
@@ -101,9 +101,9 @@ export const ThreatTimeline = ({ events = [], loading = false }) => {
                   fontFamily: 'var(--font-mono)',
                   padding: '2px 6px',
                   borderRadius: '4px',
-                  backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                  backgroundColor: 'var(--primary-accent-light)',
                   color: 'var(--primary-accent)',
-                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                  border: '1px solid var(--border-color)',
                 }}
               >
                 {ev.event_type?.replace(/_/g, ' ')}

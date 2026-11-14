@@ -59,11 +59,11 @@ export const URLChecker = () => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <Globe size={18} style={{ color: 'var(--primary-accent)' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            ScamShield Domain Defense
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+            ShieldNet Domain Defense
           </span>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
           Malicious URL & Phishing Scanner
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -105,11 +105,11 @@ export const URLChecker = () => {
                 type="button"
                 onClick={() => setUrlInput(sample)}
                 style={{
-                  backgroundColor: '#111827',
+                  backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
                   color: 'var(--text-secondary)',
                   borderRadius: '20px',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   fontSize: '11px',
                   fontFamily: 'var(--font-mono)',
                   cursor: 'pointer',
@@ -238,7 +238,7 @@ export const URLChecker = () => {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: '12px',
                 padding: '16px',
-                backgroundColor: '#0D1527',
+                backgroundColor: 'var(--bg-secondary)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-color)',
               }}
@@ -308,7 +308,7 @@ export const URLChecker = () => {
                       alignItems: 'center',
                       gap: '10px',
                       padding: '10px 14px',
-                      backgroundColor: '#111827',
+                      backgroundColor: 'var(--bg-secondary)',
                       borderLeft: '3px solid var(--accent-critical)',
                       borderRadius: '4px',
                       fontSize: '13px',
@@ -342,7 +342,7 @@ export const URLChecker = () => {
               className="btn btn-secondary"
             >
               <Search size={15} />
-              Investigate in ScamTrace
+              Investigate in Network Mapper
             </button>
 
             <button

@@ -49,7 +49,7 @@ export const NetworkExplorer = () => {
         getNetworkClusters().catch(() => []),
       ]);
 
-      // Normalize elements format: backend might return { nodes: [...], edges: [...] } or direct Cytoscape array
+      // Normalize elements format
       let cytoscapeElements = [];
       if (Array.isArray(overviewData)) {
         cytoscapeElements = overviewData;
@@ -113,7 +113,6 @@ export const NetworkExplorer = () => {
     fetchGraphData();
   }, []);
 
-  // Filter or search centring
   const handleNodeSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -132,27 +131,27 @@ export const NetworkExplorer = () => {
   };
 
   return (
-    <div className="page-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="page-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Share2 size={18} style={{ color: 'var(--accent-purple)' }} />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              ScamTrace Graph Visualizer
+            <Share2 size={18} style={{ color: 'var(--primary-accent)' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+              ShieldNet Network Intelligence
             </span>
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
-            Syndicated Threat Network Explorer
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-heading)' }}>
+            Threat Network Explorer & Cluster Mapper
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
             Interactive multi-hop graph mapping communication hubs, lookalike domains, mule bank accounts, and laundering trails.
           </p>
         </div>
 
         {/* Refresh & Reset */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={fetchGraphData} className="btn btn-secondary" style={{ fontSize: '12px' }}>
+          <button onClick={fetchGraphData} className="btn btn-secondary" style={{ fontSize: '12.5px' }}>
             <RefreshCw size={14} /> Reload Graph
           </button>
         </div>
@@ -162,25 +161,26 @@ export const NetworkExplorer = () => {
       <div
         className="cyber-card"
         style={{
-          padding: '16px',
+          padding: '14px 18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '14px',
-          backgroundColor: '#0F172A',
+          backgroundColor: '#FFFFFF',
+          boxShadow: 'var(--shadow-xs)',
         }}
       >
-        {/* Filter Pills */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-            <Filter size={14} />
-            <span>Type:</span>
+        {/* Filter Selectors */}
+        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+            <Filter size={14} style={{ color: 'var(--primary-accent)' }} />
+            <span style={{ fontWeight: 600 }}>Type:</span>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="form-select"
-              style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}
+              style={{ padding: '5px 10px', fontSize: '12px', width: 'auto' }}
             >
               <option value="all">All Types</option>
               <option value="phone">Phones Only</option>
@@ -190,13 +190,13 @@ export const NetworkExplorer = () => {
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-            <span>Risk:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+            <span style={{ fontWeight: 600 }}>Risk:</span>
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
               className="form-select"
-              style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}
+              style={{ padding: '5px 10px', fontSize: '12px', width: 'auto' }}
             >
               <option value="all">All Severities</option>
               <option value="critical">Critical</option>
@@ -206,13 +206,13 @@ export const NetworkExplorer = () => {
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-            <span>Evidence:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+            <span style={{ fontWeight: 600 }}>Evidence:</span>
             <select
               value={evidenceFilter}
               onChange={(e) => setEvidenceFilter(e.target.value)}
               className="form-select"
-              style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}
+              style={{ padding: '5px 10px', fontSize: '12px', width: 'auto' }}
             >
               <option value="all">All Evidence</option>
               <option value="verified">Verified Records</option>
@@ -229,9 +229,9 @@ export const NetworkExplorer = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Focus node by label/ID..."
-            style={{ padding: '6px 12px', fontSize: '12px' }}
+            style={{ padding: '7px 12px', fontSize: '12.5px' }}
           />
-          <button type="submit" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+          <button type="submit" className="btn btn-secondary" style={{ padding: '7px 14px', fontSize: '12.5px' }}>
             <Search size={14} />
           </button>
         </form>
@@ -248,7 +248,7 @@ export const NetworkExplorer = () => {
 
       {/* Main Canvas & Details Drawer */}
       {loading ? (
-        <LoadingState message="Constructing network topology from /api/network/overview..." />
+        <LoadingState message="Constructing network topology from ShieldNet intelligence engine..." />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: selectedNode || selectedEdge ? '1fr 340px' : '1fr', gap: '20px', minHeight: '620px' }}>
           {/* Cytoscape Canvas */}
@@ -275,8 +275,9 @@ export const NetworkExplorer = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 padding: '20px',
-                backgroundColor: '#0F172A',
-                borderLeft: '2px solid var(--primary-accent)',
+                backgroundColor: '#FFFFFF',
+                borderLeft: '3px solid var(--primary-accent)',
+                boxShadow: 'var(--shadow-card)',
               }}
             >
               <div>
@@ -300,8 +301,8 @@ export const NetworkExplorer = () => {
                 {selectedNode && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>IDENTIFIER</div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>IDENTIFIER</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
                         {selectedNode.label || selectedNode.id}
                       </div>
                     </div>
@@ -315,21 +316,21 @@ export const NetworkExplorer = () => {
 
                     <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
                       <div>
-                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>SOURCE DATASET</span>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontWeight: 600 }}>SOURCE DATASET</span>
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{selectedNode.sourceDataset || 'Intelligence Registry'}</span>
                       </div>
 
                       {selectedNode.clusterId && (
                         <div>
-                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>CLUSTER ID</span>
-                          <span style={{ color: 'var(--accent-purple)', fontFamily: 'var(--font-mono)' }}>#{selectedNode.clusterId}</span>
+                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontWeight: 600 }}>CLUSTER ID</span>
+                          <span style={{ color: 'var(--secondary-accent)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>#{selectedNode.clusterId}</span>
                         </div>
                       )}
 
                       {selectedNode.notes && (
                         <div>
-                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>ANALYSIS NOTE</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>{selectedNode.notes}</span>
+                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontWeight: 600 }}>ANALYSIS NOTE</span>
+                          <span style={{ color: 'var(--text-secondary)', lineHeight: 1.45 }}>{selectedNode.notes}</span>
                         </div>
                       )}
                     </div>
@@ -340,24 +341,24 @@ export const NetworkExplorer = () => {
                 {selectedEdge && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>RELATIONSHIP TYPE</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>RELATIONSHIP TYPE</div>
                       <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-accent)' }}>
                         {selectedEdge.relation || 'Connected'}
                       </div>
                     </div>
 
-                    <div style={{ backgroundColor: '#111827', padding: '12px', borderRadius: '6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid var(--border-color)' }}>
                       <div>
-                        <span style={{ color: 'var(--text-muted)' }}>Source: </span>
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Source: </span>
                         <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{selectedEdge.source}</span>
                       </div>
                       <div>
-                        <span style={{ color: 'var(--text-muted)' }}>Target: </span>
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Target: </span>
                         <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{selectedEdge.target}</span>
                       </div>
                       {selectedEdge.amount && (
                         <div>
-                          <span style={{ color: 'var(--text-muted)' }}>Transfer Amount: </span>
+                          <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Transfer Amount: </span>
                           <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>₹{selectedEdge.amount.toLocaleString()}</span>
                         </div>
                       )}
@@ -398,11 +399,11 @@ export const NetworkExplorer = () => {
 
       {/* Known Syndicated Clusters Preview Strip */}
       {clusters && clusters.length > 0 && (
-        <div className="cyber-card" style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Layers size={16} style={{ color: 'var(--accent-orange)' }} />
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Detected Fraud Syndication Clusters ({clusters.length})
+        <div className="cyber-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <Layers size={16} style={{ color: 'var(--primary-accent)' }} />
+            <h4 style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-heading)' }}>
+              Detected Threat Clusters ({clusters.length})
             </h4>
           </div>
 
@@ -412,14 +413,14 @@ export const NetworkExplorer = () => {
                 key={c.id || idx}
                 style={{
                   padding: '12px 14px',
-                  backgroundColor: '#0D1527',
+                  backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '12px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{c.name || `Cluster #${c.id || idx + 1}`}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{c.name || `Cluster #${c.id || idx + 1}`}</span>
                   <RiskBadge level={c.riskLevel || 'high'} size="sm" />
                 </div>
                 <div style={{ color: 'var(--text-secondary)' }}>{c.description || `${c.memberCount || c.nodes?.length || 0} coordinated entities`}</div>

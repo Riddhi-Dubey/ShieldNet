@@ -12,40 +12,39 @@ import {
   BarChart3, 
   Database,
   Briefcase,
-  ExternalLink,
   LifeBuoy
 } from 'lucide-react';
 
 export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
-  const shieldNavs = [
-    { to: '/shield/message', label: 'Message Checker', icon: ShieldCheck, badge: 'AI' },
-    { to: '/shield/url', label: 'URL Checker', icon: Globe },
-    { to: '/shield/chat', label: 'AI Safety Assistant', icon: Bot, badge: 'Live' },
-    { to: '/shield/quiz', label: 'Awareness Quiz', icon: HelpCircle },
+  const citizenNavs = [
+    { to: '/shield/message', label: 'Message Scanner', icon: ShieldCheck, badge: 'AI' },
+    { to: '/shield/url', label: 'URL Phishing Scanner', icon: Globe },
+    { to: '/shield/chat', label: 'Cyber Advisor', icon: Bot, badge: 'AI' },
+    { to: '/shield/quiz', label: 'Security Quiz', icon: HelpCircle },
     { to: '/shield/report', label: 'Report Incident', icon: FileWarning, highlight: true },
   ];
 
-  const traceNavs = [
+  const intelNavs = [
     { to: '/trace/dashboard', label: 'Threat Overview', icon: LayoutDashboard },
     { to: '/trace/search', label: 'Universal Search', icon: Search },
-    { to: '/trace/cases', label: 'Case Workspace', icon: Briefcase, badge: 'Active' },
-    { to: '/trace/network', label: 'Network Explorer', icon: Share2, badge: 'Graph' },
+    { to: '/trace/cases', label: 'Case Workspace', icon: Briefcase, badge: 'Cases' },
+    { to: '/trace/network', label: 'Network Mapper', icon: Share2, badge: 'Graph' },
     { to: '/trace/analytics', label: 'Threat Analytics', icon: BarChart3 },
-    { to: '/trace/datasets', label: 'Dataset Sources', icon: Database },
+    { to: '/trace/datasets', label: 'Data Sources', icon: Database },
   ];
 
   const linkStyle = ({ isActive }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '10px 14px',
+    padding: '9px 12px',
     borderRadius: 'var(--radius-md)',
     fontSize: '13px',
     fontWeight: isActive ? 700 : 500,
     textDecoration: 'none',
-    color: isActive ? '#F8FAFC' : 'var(--text-secondary)',
-    backgroundColor: isActive ? 'rgba(56, 189, 248, 0.12)' : 'transparent',
-    border: isActive ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid transparent',
+    color: isActive ? 'var(--primary-accent)' : 'var(--text-secondary)',
+    backgroundColor: isActive ? 'var(--primary-accent-light)' : 'transparent',
+    border: isActive ? '1px solid rgba(57, 127, 120, 0.25)' : '1px solid transparent',
     transition: 'all 0.15s ease',
   });
 
@@ -53,17 +52,17 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
     <aside
       style={{
         width: '260px',
-        backgroundColor: '#0B1020',
+        backgroundColor: '#FFFFFF',
         borderRight: '1px solid var(--border-color)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '20px 16px',
+        padding: '24px 16px',
         flexShrink: 0,
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* ScamShield Navigation Group */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        {/* Citizen Protection Group */}
         <div>
           <div
             style={{
@@ -71,18 +70,18 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
               fontWeight: 700,
               color: 'var(--primary-accent)',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.07em',
               padding: '0 8px 8px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
             }}
           >
-            <span>ScamShield Protection</span>
+            <span>Citizen Protection</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {shieldNavs.map((item) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {citizenNavs.map((item) => {
               const Icon = item.icon;
               return (
                 <NavLink key={item.to} to={item.to} style={linkStyle}>
@@ -95,10 +94,10 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
                       style={{
                         fontSize: '10px',
                         fontWeight: 700,
-                        backgroundColor: '#172033',
+                        backgroundColor: 'var(--bg-secondary)',
                         color: 'var(--primary-accent)',
                         padding: '2px 6px',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-xs)',
                         border: '1px solid var(--border-color)',
                       }}
                     >
@@ -111,26 +110,26 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
           </div>
         </div>
 
-        {/* ScamTrace Navigation Group */}
+        {/* Intelligence & Network Mapping Group */}
         <div>
           <div
             style={{
               fontSize: '11px',
               fontWeight: 700,
-              color: 'var(--accent-purple)',
+              color: 'var(--secondary-accent)',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.07em',
               padding: '0 8px 8px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
             }}
           >
-            <span>ScamTrace Intelligence</span>
+            <span>Network Intelligence</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {traceNavs.map((item) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {intelNavs.map((item) => {
               const Icon = item.icon;
               return (
                 <NavLink key={item.to} to={item.to} style={linkStyle}>
@@ -143,10 +142,10 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
                       style={{
                         fontSize: '10px',
                         fontWeight: 700,
-                        backgroundColor: '#172033',
-                        color: 'var(--accent-purple)',
+                        backgroundColor: 'var(--bg-secondary)',
+                        color: 'var(--secondary-accent)',
                         padding: '2px 6px',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-xs)',
                         border: '1px solid var(--border-color)',
                       }}
                     >
@@ -165,24 +164,24 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
         style={{
           padding: '14px',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: '#111827',
-          border: '1px solid var(--border-color)',
+          backgroundColor: 'var(--accent-critical-bg)',
+          border: '1px solid rgba(185, 28, 28, 0.2)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
+          gap: '8px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-critical)', fontSize: '12px', fontWeight: 700 }}>
           <LifeBuoy size={16} />
           <span>Fell for a scam?</span>
         </div>
-        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-          Immediate action in the first 2 hours can freeze fraudulent transfers.
+        <p style={{ fontSize: '11.5px', color: '#7F1D1D', lineHeight: 1.45 }}>
+          Golden hour action in the first 2 hours can freeze fraudulent transfers.
         </p>
         <button
           onClick={onOpenEmergency}
           className="btn btn-danger"
-          style={{ width: '100%', padding: '6px 10px', fontSize: '12px' }}
+          style={{ width: '100%', padding: '6px 10px', fontSize: '12px', marginTop: '2px' }}
         >
           View Emergency Steps
         </button>
