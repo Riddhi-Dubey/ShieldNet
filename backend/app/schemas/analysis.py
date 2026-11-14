@@ -27,6 +27,10 @@ class MessageAnalysisResponse(BaseModel):
     safe_next_steps: List[str]
     limitations: str
     redacted_message_preview: str
+    ml_prediction: Optional[str] = Field(None, description="SCAM_OR_FRAUD, BENIGN, or SUSPICIOUS")
+    ml_probability: Optional[float] = Field(None, description="Calibrated ML probability score (0-100)")
+    model_version: Optional[str] = Field(None, description="Trained ML model version")
+    model_type: Optional[str] = Field(None, description="ML architecture used")
 
 
 class UrlAnalysisRequest(BaseModel):

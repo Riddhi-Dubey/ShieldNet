@@ -1,8 +1,32 @@
+import os
 import re
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
+import joblib
 from backend.app.schemas.analysis import SignalDetail, MessageAnalysisResponse
 from backend.app.services.risk_scoring import calculate_risk_level
 from backend.app.security.redaction import redact_sensitive_text
+
+MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ml")
+MSG_MODEL_PATH = os.path.join(MODEL_DIR, "message_model.joblib")
+MSG_VEC_PATH = os.path.join(MODEL_DIR, "message_vectorizer.joblib")
+MSG_META_PATH = os.path.join(MODEL_DIR, "message_metadata.joblib")
+
+_model = None
+_vectorizer = None
+_metadata = None
+
+def get_message_ml_artifacts():
+    global _model, _vectorizer, _metadata
+    if _model is None and os.path.exists(MSG_MODEL_PATH) and os.path.exists(MSG_VEC_PATH):
+        try:
+            _model = joblib.load(MSG_MODEL_PATH)
+            _vectorizer = joblib.load(MSG_VEC_PATH)
+            if os.path.exists(MSG_META_PATH):
+                _metadata = joblib.load(MSG_META_PATH)
+        except Exception:
+            _model = None
+            _vectorizer = None
+    return _model, _vectorizer, _metadata
 
 # Categorized threat pattern detectors
 SIGNAL_PATTERNS = {
@@ -169,8 +193,35 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
     if "PRIZE_OR_LOTTERY" in signal_keys and ("ADVANCE_PAYMENT" in signal_keys or "KYC_HARVESTING" in signal_keys):
         compound_boost += 25.0
 
+    # ML Model Prediction (TF-IDF + Calibrated Logistic Regression)
+    model, vectorizer, meta = get_message_ml_artifacts()
+    ml_prob: Optional[float] = None
+    ml_prediction: Optional[str] = None
+    model_version: Optional[str] = None
+    model_type: Optional[str] = None
+
+    if model is not None and vectorizer is not None:
+        try:
+            vec = vectorizer.transform([message])
+            prob = float(model.predict_proba(vec)[0][1]) * 100.0
+            ml_prob = round(prob, 1)
+            ml_prediction = "SCAM_OR_FRAUD" if ml_prob >= 50.0 else "BENIGN"
+            model_version = meta.get("model_version", "v1.0.0") if meta else "v1.0.0"
+            model_type = meta.get("model_type", "TF-IDF + Calibrated Logistic Regression") if meta else "TF-IDF + Calibrated Logistic Regression"
+        except Exception:
+            pass
+
     raw_total = base_score + compound_boost
-    risk_score = min(100.0, round(raw_total, 1))
+    if ml_prob is not None:
+        if raw_total == 0:
+            # If no heuristic signals matched, keep benign messages Low
+            risk_score = round(min(24.0, ml_prob * 0.25), 1)
+        else:
+            # Multi-layer defense: synthesize heuristic risk and ML probability
+            risk_score = min(100.0, round(max(raw_total, (raw_total * 0.7) + (ml_prob * 0.3)), 1))
+    else:
+        risk_score = min(100.0, round(raw_total, 1))
+
     risk_level = calculate_risk_level(risk_score)
 
     # Explanation generation
@@ -240,5 +291,9 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
         explanation=explanation,
         safe_next_steps=safe_steps,
         limitations=limitations,
-        redacted_message_preview=redacted_preview
+        redacted_message_preview=redacted_preview,
+        ml_prediction=ml_prediction,
+        ml_probability=ml_prob,
+        model_version=model_version,
+        model_type=model_type
     )

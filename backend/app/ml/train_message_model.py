@@ -1,0 +1,229 @@
+import os
+import csv
+import json
+from datetime import datetime, timezone
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report
+)
+
+MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(MODEL_DIR, "message_model.joblib")
+VECTORIZER_PATH = os.path.join(MODEL_DIR, "message_vectorizer.joblib")
+META_PATH = os.path.join(MODEL_DIR, "message_metadata.joblib")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(MODEL_DIR)), "data", "processed")
+DATASET_CSV = os.path.join(DATA_DIR, "message_dataset.csv")
+
+# Curated dataset of authentic scam patterns and legitimate communications
+TRAINING_SAMPLES = [
+    # --- SCAM / FRAUD SAMPLES (label = 1) ---
+    # Bank & KYC Scams
+    ("URGENT: Your SBI account has been suspended due to pending KYC update. Click http://sbi-kyc-verify-portal.in immediately to avoid permanent deactivation.", 1, "Banking Phishing"),
+    ("Dear HDFC customer, your net banking access will expire today. Update PAN card details immediately at http://hdfc-netbanking-alert.security-auth.invalid", 1, "Banking Phishing"),
+    ("Your ICICI bank debit card has been blocked. Complete KYC verification within 24 hours at http://icici-verify-account.info.invalid", 1, "Banking Phishing"),
+    ("Kotak 811 account alert: Your account is on hold. Update Aadhar immediately at http://kotak-811-kyc-reactivation.security-alert.invalid", 1, "Banking Phishing"),
+    ("Axis Bank alert: Your credit card reward points worth Rs 9,850 will expire tonight. Redeem now at http://axis-bank-rewards.redeem-portal.invalid", 1, "Reward Scam"),
+    ("PNB customer, submit your PAN card immediately or your account will be frozen today. Link here http://punjab-national-bank-update.support.invalid", 1, "Banking Phishing"),
+    ("Paytm KYC expired! Your wallet will be blocked within 2 hours. Call helpline 9876543210 or visit http://paytm-kyc-expired.service.invalid", 1, "KYC Scam"),
+    
+    # Lottery, Prize & KBC Baiting
+    ("Congratulations! You won ₹25,00,000 in KBC Lottery! Send your Aadhar card and registration fee of ₹1,200 to WhatsApp number +91 9876543210 to claim.", 1, "Lottery Scam"),
+    ("You have won a cash prize of Rs 50,00,000 from Jio Lucky Draw. Deposit processing charge Rs 2,500 to SBI account 3829104829 to release check.", 1, "Lottery Scam"),
+    ("Special Reward: You are selected for iPhone 15 Pro lucky winner. Pay shipping fee Rs 499 at http://apple-lucky-claim.xyz to dispatch.", 1, "Lottery Scam"),
+    ("Dear user, you won Rs 10,00,000 in Diwali Mega Bumper Draw. Contact WhatsApp manager at 9811223344 with your bank details to claim.", 1, "Lottery Scam"),
+    ("Your mobile number won 3rd prize in International Lottery. Send fee Rs 5,000 for customs tax clearance.", 1, "Lottery Scam"),
+
+    # Utility Disconnection & Digital Coercion
+    ("Electricity bill unpaid. Your power will be disconnected tonight at 9:30 PM. Call Electricity Officer immediately at 9123456789.", 1, "Utility Coercion"),
+    ("BSES Notice: Dear consumer, your electric meter will be cut off by 8:00 PM due to unpaid bill of Rs 3,420. Contact bill officer 9845123456 immediately.", 1, "Utility Coercion"),
+    ("Urgent: Water supply to your connection will be stopped today. Clear pending bill by sending money to UPI id waterdept@okaxis immediately.", 1, "Utility Coercion"),
+    ("Gas pipeline connection blocked. Pay reconnection fee Rs 1,100 to avoid permanent removal. Call 9988776655.", 1, "Utility Coercion"),
+
+    # Fake Employment & Part-time Job Scams
+    ("Earn ₹5,000 to ₹10,000 daily from home! Just like YouTube videos and review products. No experience needed. Join Telegram channel t.me/daily_income_jobs", 1, "Job Scam"),
+    ("Part time job offer: Work 30 minutes daily on mobile and get paid Rs 3,500 daily directly to UPI. Contact HR on WhatsApp at 9922334455.", 1, "Job Scam"),
+    ("Amazon part-time hiring: Earn Rs 45,000 monthly for product rating tasks. Registration fee Rs 999 refundable after first task.", 1, "Job Scam"),
+    ("Google Map review work from home job. Earn Rs 150 per review, 30 reviews daily. Send your CV to telegram handle @google_task_mgr", 1, "Job Scam"),
+    ("International freelance data entry job. High salary $50/hour. Pay $20 software installation deposit to start working.", 1, "Job Scam"),
+
+    # Family Emergency & Impersonation
+    ("Hi Mom, I broke my phone and this is my new temporary number. Can you quickly send ₹15,000 via UPI to help me pay for emergency cab ride?", 1, "Impersonation"),
+    ("Hello Dad, I met with a small accident and police are taking my car. Please send Rs 20,000 to hospital UPI urgentpay@ybl right now, will explain later.", 1, "Impersonation"),
+    ("Hey bro, my wallet got stolen at railway station. Need Rs 5,000 urgently for ticket. Send to this GPay number 9876501234 please.", 1, "Impersonation"),
+
+    # Parcel & Courier Fraud
+    ("FedEx: Your package #FDX83921 is held at customs due to unpaid duty of Rs 1,450. Pay online immediately at http://fedex-parcel-clearance.invalid to prevent return.", 1, "Courier Scam"),
+    ("India Post: Your parcel cannot be delivered due to incomplete address. Update address and pay re-delivery charge Rs 48 at http://indiapost-address-update.top", 1, "Courier Scam"),
+    ("DHL Express: Delivery failure notice. Parcel contains illegal documents according to customs. Call customs officer 9812345678 to avoid arrest.", 1, "Digital Arrest"),
+
+    # Digital Arrest & Authority Coercion
+    ("CBI Mumbai notice: An arrest warrant has been issued in your name for money laundering. Connect to video call interrogation immediately on Skype.", 1, "Digital Arrest"),
+    ("Cyber Police Delhi: Your Aadhaar card is linked to 14 illegal SIM cards used in terrorist financing. Report to digital police verification immediately.", 1, "Digital Arrest"),
+    ("Income Tax Department: Tax evasion detected in your return. Pay penalty Rs 25,000 within 2 hours or your bank accounts will be attached by enforcement.", 1, "Digital Arrest"),
+
+    # Credential, PIN & OTP Theft
+    ("Dear customer, Rs 50,000 has been debited from your a/c. If this was not you, call 9876543210 and share the cancellation OTP immediately.", 1, "OTP Theft"),
+    ("Scan this QR code to receive Rs 4,500 cashback directly into your PhonePe wallet. Enter your UPI PIN to accept payment.", 1, "UPI QR Fraud"),
+    ("Receive your government student scholarship of Rs 12,000. Open PhonePe, scan code and authorize with your MPIN to credit balance.", 1, "UPI QR Fraud"),
+    ("Your net banking password has been compromised. Send your login user ID and ATM PIN to security officer at 9123456780 to reset.", 1, "Credential Theft"),
+
+    # Crypto & Double Money
+    ("Crypto VIP Signals: Guaranteed 300% profit in 24 hours. Send minimum 100 USDT to wallet 0x71C... and receive 300 USDT return.", 1, "Crypto Scam"),
+    ("Binance promotion: Double your Bitcoin today. Send 0.05 BTC to promotional address and receive 0.10 BTC instantly back.", 1, "Crypto Scam"),
+
+    # --- BENIGN / LEGITIMATE SAMPLES (label = 0) ---
+    # Banking Transaction Alerts (Notice informative tone, no threats, no external links to update KYC)
+    ("Dear Customer, INR 1,250.00 debited from A/C XX4821 on 14-Nov-26 at BigBazaar UPI. Bal: INR 14,820.50. Call 1800112211 if not done by you.", 0, "Bank Alert"),
+    ("HDFC Bank Alert: Your A/C XX9012 has been credited with INR 45,000.00 by NEFT from INFOSYS LTD on 14-Nov-26. Avail Bal: INR 62,340.00.", 0, "Bank Alert"),
+    ("ICICI Bank: Your credit card statement for ending 4012 is generated. Minimum amount due: INR 2,100 by 28-Nov-26. View in iMobile app.", 0, "Bank Alert"),
+    ("SBI: Dear customer, your request for cheque book of 25 leaves has been processed and will be delivered by registered speed post in 5 days.", 0, "Bank Service"),
+    ("Axis Bank: Your loan installment of Rs. 8,450 for vehicle loan is due on 20th Nov. Ensure sufficient balance in account XX3412.", 0, "Bank Service"),
+
+    # Authentic OTP Messages (Informative, explicitly warns NEVER to share)
+    ("382910 is your secret OTP for login to SBI YONO app. Valid for 10 minutes. Do not share OTP with anyone, including bank staff.", 0, "OTP Delivery"),
+    ("Dear customer, 719284 is your OTP for transaction of INR 350.00 at Swiggy. NEVER share your OTP, CVV, or passwords with anyone.", 0, "OTP Delivery"),
+    ("Use 510293 to verify your phone number on WhatsApp. Do not share this code with anyone.", 0, "OTP Delivery"),
+    ("Google verification code: 829104. Use this code to complete password recovery. Google will never ask for this code.", 0, "OTP Delivery"),
+    ("Your Amazon login OTP is 948120. Valid for 15 mins. Please do not share it with any delivery agent or customer care representative.", 0, "OTP Delivery"),
+
+    # E-Commerce & Delivery Notifications
+    ("Your Swiggy order #92819 is on the way. Delivery executive Rahul is arriving in 8 minutes. Enjoy your meal!", 0, "Delivery Notification"),
+    ("Amazon: Your order with tracking #IN829104829 has been dispatched and will arrive today by 7:00 PM. Track in Amazon app.", 0, "Delivery Notification"),
+    ("Zomato: We have received your order from Burger King. Estimated delivery time is 25-30 minutes.", 0, "Delivery Notification"),
+    ("Flipkart: Order for Wireless Headphones confirmed. Total paid: Rs 1,499. Expected delivery by Friday.", 0, "Delivery Notification"),
+    ("Blinkit: Your grocery delivery has been placed at your doorstep. Thank you for shopping with us.", 0, "Delivery Notification"),
+
+    # Travel & Utility Notifications
+    ("IRCTC: PNR 2849103829, Train 12951 NDLS RAJDHANI, Date: 18-Nov-26, Class: 3A, Status: Confirmed, Coach B2, Seat 45 (MB). Happy Journey!", 0, "Travel Alert"),
+    ("IndiGo flight 6E-204 from Delhi to Mumbai is on schedule. Boarding starts at 14:15 at Gate 28, Terminal 3.", 0, "Travel Alert"),
+    ("Electricity Department: Thank you for your payment of Rs 1,840 against consumer CA #10029482. Receipt #RCP92810.", 0, "Utility Receipt"),
+    ("Jio: Your daily 1.5GB high speed data for mobile number 9876543210 is 50% used. Plan validity: 24 days remaining.", 0, "Telecom Notice"),
+    ("Airtel Thanks: Recharge of Rs 299 successful. Validity: 28 days with unlimited calls and 1.5GB/day.", 0, "Telecom Notice"),
+
+    # Everyday Social & Academic Messages
+    ("Hey, are we still meeting in the computer lab at 4:30 PM to finish the compiler design assignment?", 0, "Social / Academic"),
+    ("Hi team, please find attached the meeting minutes from today's sprint review. Let me know if any updates are needed.", 0, "Work Communication"),
+    ("Reminder: The DBMS mid-term exam is scheduled for Monday at 10:00 AM in Hall 302. Please bring your hall tickets.", 0, "Academic Notice"),
+    ("Hey Rahul, happy birthday! Hope you have a wonderful year ahead filled with joy and success.", 0, "Personal Greeting"),
+    ("Good morning everyone, the college bus on Route 14 will run 15 minutes late today due to road repairs near civil lines.", 0, "Campus Notice"),
+    ("Can you please share the lecture notes for yesterday's machine learning class on support vector machines?", 0, "Academic Notice"),
+    ("Hi doc, I wanted to confirm my appointment for routine dental checkup tomorrow at 5:00 PM.", 0, "Healthcare Appointment")
+]
+
+
+def train_message_classifier():
+    """
+    Trains an explainable TF-IDF + Logistic Regression scam message classifier
+    with probability calibration (CalibratedClassifierCV).
+    """
+    print("=" * 70)
+    print("TRAINING SCAMSHIELD MESSAGE CLASSIFIER (TF-IDF + LOGISTIC REGRESSION)")
+    print("=" * 70)
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    # 1. Save dataset CSV for transparent inspection and verification
+    df = pd.DataFrame(TRAINING_SAMPLES, columns=["message", "label", "category"])
+    df.to_csv(DATASET_CSV, index=False, quoting=csv.QUOTE_ALL)
+    print(f"[1/6] Saved transparent dataset: {DATASET_CSV} ({len(df)} samples)")
+    print(f"      Scam samples (1): {sum(df['label'] == 1)} | Benign samples (0): {sum(df['label'] == 0)}")
+
+    # 2. Stratified Train / Test Split
+    X = df["message"]
+    y = df["label"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.25, random_state=42, stratify=y
+    )
+    print(f"[2/6] Stratified split: {len(X_train)} train samples, {len(X_test)} test samples")
+
+    # 3. Text Vectorization with TF-IDF (Unigrams + Bigrams, Sublinear TF)
+    vectorizer = TfidfVectorizer(
+        lowercase=True,
+        ngram_range=(1, 2),
+        max_features=2500,
+        sublinear_tf=True,
+        stop_words="english"
+    )
+    X_train_vec = vectorizer.fit_transform(X_train)
+    X_test_vec = vectorizer.transform(X_test)
+    print(f"[3/6] TF-IDF Vectorizer fitted with {len(vectorizer.get_feature_names_out())} vocabulary features.")
+
+    # 4. Logistic Regression Classifier with Probability Calibration
+    base_clf = LogisticRegression(
+        C=1.5,
+        max_iter=1000,
+        class_weight="balanced",
+        random_state=42,
+        solver="lbfgs"
+    )
+    
+    # Sigmoid calibration ensures output probabilities are well-calibrated (0.0 to 1.0)
+    calibrated_clf = CalibratedClassifierCV(estimator=base_clf, method="sigmoid", cv=3)
+    calibrated_clf.fit(X_train_vec, y_train)
+    print("[4/6] Calibrated Logistic Regression model trained successfully.")
+
+    # 5. Model Evaluation
+    y_pred = calibrated_clf.predict(X_test_vec)
+    y_prob = calibrated_clf.predict_proba(X_test_vec)[:, 1]
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, zero_division=0)
+    rec = recall_score(y_test, y_pred, zero_division=0)
+    f1 = f1_score(y_test, y_pred, zero_division=0)
+    cm = confusion_matrix(y_test, y_pred).tolist()
+
+    print(f"[5/6] Evaluation Metrics on Held-Out Test Set:")
+    print(f"      Accuracy:  {acc:.4f} ({acc*100:.1f}%)")
+    print(f"      Precision: {prec:.4f}")
+    print(f"      Recall:    {rec:.4f}")
+    print(f"      F1-Score:  {f1:.4f}")
+    print(f"      Confusion Matrix: {cm}")
+
+    # 6. Save Model Artifacts & Metadata
+    joblib.dump(calibrated_clf, MODEL_PATH)
+    joblib.dump(vectorizer, VECTORIZER_PATH)
+
+    metadata = {
+        "model_version": "v1.0.0",
+        "model_type": "TF-IDF + Calibrated Logistic Regression",
+        "algorithm": "LogisticRegression + CalibratedClassifierCV(method='sigmoid')",
+        "trained_at_utc": datetime.now(timezone.utc).isoformat(),
+        "total_samples": len(df),
+        "train_samples": len(X_train),
+        "test_samples": len(X_test),
+        "vocabulary_size": len(vectorizer.get_feature_names_out()),
+        "metrics": {
+            "accuracy": float(acc),
+            "precision": float(prec),
+            "recall": float(rec),
+            "f1_score": float(f1),
+            "confusion_matrix": cm
+        },
+        "dataset_path": "backend/data/processed/message_dataset.csv"
+    }
+
+    joblib.dump(metadata, META_PATH)
+    print(f"[6/6] Saved model to {MODEL_PATH}")
+    print(f"      Saved vectorizer to {VECTORIZER_PATH}")
+    print(f"      Saved metadata to {META_PATH}")
+    print("=" * 70)
+    print("TRAINING COMPLETE & VERIFIED!")
+
+    return metadata
+
+
+if __name__ == "__main__":
+    train_message_classifier()

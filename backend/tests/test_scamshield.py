@@ -23,6 +23,9 @@ def test_message_analysis_signals():
     assert len(res.safe_next_steps) > 0
     assert "limitations" in res.model_dump()
     assert "482910" not in res.redacted_message_preview
+    assert res.ml_probability is not None
+    assert res.ml_probability >= 50.0
+    assert res.ml_prediction == "SCAM_OR_FRAUD"
 
 
 def test_message_analysis_benign():
@@ -31,6 +34,8 @@ def test_message_analysis_benign():
     assert res.risk_score < 30.0
     assert res.risk_level == "LOW"
     assert len(res.detected_signals) == 0
+    assert res.ml_probability is not None
+    assert res.ml_prediction == "BENIGN"
 
 
 def test_url_analysis_phishing_indicators():

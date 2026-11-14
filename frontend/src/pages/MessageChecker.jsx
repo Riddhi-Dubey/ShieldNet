@@ -11,7 +11,8 @@ import {
   FileWarning, 
   HelpCircle,
   Copy,
-  Info
+  Info,
+  Cpu
 } from 'lucide-react';
 import { analyseMessage, extractErrorMessage } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
@@ -230,6 +231,22 @@ export const MessageChecker = () => {
             }}
           >
             <div>
+              {result.ml_probability !== undefined && result.ml_probability !== null && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span
+                    className="badge badge-neutral"
+                    style={{ fontSize: '11px', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Cpu size={12} />
+                    {result.model_type || 'TF-IDF + LogReg'} {result.model_version ? `(${result.model_version})` : ''} • {result.ml_probability}% Scam Prob
+                  </span>
+                  {result.ml_prediction && (
+                    <span className={`badge ${result.ml_prediction === 'SCAM_OR_FRAUD' ? 'badge-critical' : 'badge-neutral'}`} style={{ fontSize: '11px' }}>
+                      {result.ml_prediction}
+                    </span>
+                  )}
+                </div>
+              )}
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Assessed Threat Verdict
               </div>
