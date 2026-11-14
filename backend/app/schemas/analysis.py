@@ -8,12 +8,18 @@ class SignalDetail(BaseModel):
     weight: float
     contribution: float
     description: str
+    title: Optional[str] = None
+    severity: Optional[str] = None
+    formatted_title: Optional[str] = None
+    explanation: Optional[str] = None
+    safety_action: Optional[str] = None
     evidence_snippet: Optional[str] = None
 
 
 class MessageAnalysisRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=3000, description="The suspicious SMS, email, or instant message text")
     sender: Optional[str] = Field(None, max_length=100, description="Optional phone number, handle, or sender ID")
+    country: Optional[str] = Field("IN", max_length=10, description="Selected country code for regional help contacts (e.g. IN, US, UK, CA, AU)")
     consent_for_llm: bool = Field(False, description="Optional user opt-in to generate plain-language explanation via LLM")
 
 
@@ -39,12 +45,14 @@ class MessageAnalysisResponse(BaseModel):
         "Does not constitute legal proof or a guaranteed fraud determination.",
         description="Disclaimer on assessment scope and non-definitive status"
     )
+    help_contacts: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Official regional reporting and emergency contacts")
     report_text: Optional[str] = Field(None, description="Formatted plain-text analysis report")
     llm_explanation: Optional[str] = Field(None, description="Optional plain-language explanation generated via LLM")
 
 
 class UrlAnalysisRequest(BaseModel):
     url: str = Field(..., min_length=3, max_length=2048, description="The URL or domain to inspect")
+    country: Optional[str] = Field("IN", max_length=10, description="Selected country code for regional help contacts (e.g. IN, US, UK, CA, AU)")
     consent_for_llm: bool = Field(False, description="Optional user opt-in to generate plain-language explanation via LLM")
 
 
@@ -59,6 +67,7 @@ class UrlAnalysisResponse(BaseModel):
     model_availability: bool
     heuristic_findings: List[str]
     warning_signs: List[str] = Field(default_factory=list)
+    warning_signals: List[Dict[str, Any]] = Field(default_factory=list)
     risk_score: float = Field(..., ge=0.0, le=100.0)
     risk_level: str
     explanation: str
@@ -71,5 +80,6 @@ class UrlAnalysisResponse(BaseModel):
         "Does not constitute legal proof. HTTPS encryption does not guarantee domain legitimacy.",
         description="Disclaimer on assessment scope and non-definitive status"
     )
+    help_contacts: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Official regional reporting and emergency contacts")
     report_text: Optional[str] = Field(None, description="Formatted plain-text analysis report")
     llm_explanation: Optional[str] = Field(None, description="Optional plain-language explanation generated via LLM")

@@ -45,6 +45,7 @@ def analyze_message_endpoint(request: MessageAnalysisRequest):
     return analyze_scam_message(
         request.message,
         sender=request.sender,
+        country=request.country or "IN",
         consent_for_llm=request.consent_for_llm
     )
 
@@ -68,7 +69,11 @@ def analyze_url_endpoint(request: UrlAnalysisRequest):
             detail="URL exceeds maximum allowed length of 2048 characters"
         )
 
-    return analyze_scam_url(clean_url, consent_for_llm=request.consent_for_llm)
+    return analyze_scam_url(
+        clean_url,
+        country=request.country or "IN",
+        consent_for_llm=request.consent_for_llm
+    )
 
 
 @router.post("/analyse/report/download")

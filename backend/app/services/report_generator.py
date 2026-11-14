@@ -82,34 +82,49 @@ def generate_plain_text_report(
         lines.append(f"   Heuristic Score  : {float(heuristic_score):.1f} / 100.0 (Separate metric: rule-based pattern matching)")
         if detected_signals:
             for idx, sig in enumerate(detected_signals, 1):
-                if hasattr(sig, "category"):
-                    cat = sig.category
-                    name = sig.signal_name
-                    desc = sig.description
-                    weight = getattr(sig, "weight", 0.0)
+                if hasattr(sig, "title") and sig.title:
+                    title = sig.title
+                    severity = sig.severity or "High"
+                    formatted_title = sig.formatted_title or f"[{severity}] {title}"
+                    explanation = sig.explanation or sig.description
+                    safety_action = sig.safety_action or "Exercise caution before responding or interacting."
                     snippet = getattr(sig, "evidence_snippet", None)
                 else:
-                    cat = sig.get("category", "Pattern")
-                    name = sig.get("signal_name") or sig.get("signal", "Signal")
-                    desc = sig.get("description") or sig.get("explanation", "")
-                    weight = sig.get("weight", 0.0)
+                    title = sig.get("title") or sig.get("signal_name", "Signal").replace("_", " ").title()
+                    severity = sig.get("severity") or "High"
+                    formatted_title = sig.get("formatted_title") or f"[{severity}] {title}"
+                    explanation = sig.get("explanation") or sig.get("description", "")
+                    safety_action = sig.get("safety_action") or "Exercise caution before responding or interacting."
                     snippet = sig.get("evidence_snippet")
 
-                lines.append(f"   {idx}. [{cat}] {name} (Weight: {weight:.1f})")
-                lines.append(f"      Description   : {desc}")
+                lines.append(f"   {idx}. {formatted_title}")
+                lines.append(f"      Explanation   : {explanation}")
+                lines.append(f"      Safety Action : {safety_action}")
                 if snippet:
-                    lines.append(f"      Context       : \"{snippet}\"")
+                    lines.append(f"      Detected In   : \"{snippet}\"")
+                lines.append("")
         else:
             lines.append("   Matched Triggers : None (No individual rule-based warning triggers identified).")
             lines.append("   Note             : A 0/100 heuristic score does not cancel or disprove the")
             lines.append("                      model's statistical assessment. Heuristics check predefined")
             lines.append("                      trigger phrases, whereas the model evaluates broader patterns.")
-    elif heuristic_findings:
-        for idx, finding in enumerate(heuristic_findings, 1):
-            lines.append(f"  {idx}. {finding}")
     else:
-        lines.append("  No overt known heuristic threat indicators or blacklisted token patterns detected.")
-        lines.append("  Note: Advanced zero-day or context-dependent lures may evade static rules.")
+        warning_signals = data.get("warning_signals") or []
+        if warning_signals:
+            for idx, sig in enumerate(warning_signals, 1):
+                formatted_title = sig.get("formatted_title") or f"[{sig.get('severity', 'High')}] {sig.get('title', 'Warning Signal')}"
+                explanation = sig.get("explanation") or sig.get("description", "")
+                safety_action = sig.get("safety_action") or "Exercise caution before visiting this address."
+                lines.append(f"  {idx}. {formatted_title}")
+                lines.append(f"     Explanation   : {explanation}")
+                lines.append(f"     Safety Action : {safety_action}")
+                lines.append("")
+        elif heuristic_findings:
+            for idx, finding in enumerate(heuristic_findings, 1):
+                lines.append(f"  {idx}. {finding}")
+        else:
+            lines.append("  No individual warning trigger was identified.")
+            lines.append("  Note: Advanced zero-day or newly registered lures may evade static rules.")
     lines.append("-" * 72)
 
     # Explanation
@@ -150,6 +165,48 @@ def generate_plain_text_report(
     ]
     for idx, step in enumerate(safe_steps, 1):
         lines.append(f"  [{idx}] {step}")
+    lines.append("-" * 72)
+
+    # Official Regional Help & Reporting Contacts Section
+    help_contacts = data.get("help_contacts") or {}
+    country_name = help_contacts.get("country_name") or "India"
+    country_code = help_contacts.get("country_code") or "IN"
+
+    lines.append(f"OFFICIAL HELP & REPORTING CONTACTS ({country_name.upper()} - {country_code}):")
+    lines.append("  Verified official government, law enforcement, and support channels.")
+    lines.append("")
+
+    # 1. Emergency Services
+    lines.append("  [1] EMERGENCY SERVICES (Immediate Emergency Response):")
+    emergency_list = help_contacts.get("emergency") or []
+    if emergency_list:
+        for em in emergency_list:
+            lines.append(f"      • {em.get('name')}: {em.get('contact')}")
+            lines.append(f"        {em.get('description')}")
+    else:
+        lines.append("      • Local Police / Emergency: Dial 112 or local emergency number")
+    lines.append("")
+
+    # 2. Fraud Reporting
+    lines.append("  [2] OFFICIAL FRAUD & CYBERCRIME REPORTING:")
+    fraud_list = help_contacts.get("fraud_reporting") or []
+    if fraud_list:
+        for fr in fraud_list:
+            lines.append(f"      • {fr.get('name')}: {fr.get('contact')}")
+            lines.append(f"        {fr.get('description')}")
+    else:
+        lines.append("      • Contact local cybercrime division or consumer protection authority.")
+    lines.append("")
+
+    # 3. Platform & Carrier Support
+    lines.append("  [3] PLATFORM & CARRIER SUPPORT:")
+    platform_list = help_contacts.get("platform_support") or []
+    if platform_list:
+        for ps in platform_list:
+            lines.append(f"      • {ps.get('name')}: {ps.get('contact')}")
+            lines.append(f"        {ps.get('description')}")
+    else:
+        lines.append("      • Contact your financial institution to freeze compromised cards or accounts.")
     lines.append("-" * 72)
 
     # Privacy Assurance

@@ -22,6 +22,7 @@ import { analyseUrl, extractErrorMessage, downloadAnalysisReport } from '../serv
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 import PrivacyModal from '../components/PrivacyModal';
+import GetHelpSection from '../components/GetHelpSection';
 
 const SAMPLE_URLS = [
   'http://sbi-card-reward-redeem.online/login.php',
@@ -38,6 +39,7 @@ export const URLChecker = () => {
   const [error, setError] = useState(null);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [consentForLlm, setConsentForLlm] = useState(false);
+  const [country, setCountry] = useState('IN');
 
   const handleUrlChange = (e) => {
     setUrlInput(e.target.value);
@@ -60,7 +62,7 @@ export const URLChecker = () => {
     setResult(null);
 
     try {
-      const data = await analyseUrl(urlInput.trim(), consentForLlm);
+      const data = await analyseUrl(urlInput.trim(), consentForLlm, country);
       setResult(data);
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -393,13 +395,103 @@ export const URLChecker = () => {
             )}
           </div>
 
-          {/* Warning Signs */}
-          {result.warning_signs && result.warning_signs.length > 0 && (
-            <div>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Detected Warning Signals */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <AlertTriangle size={16} style={{ color: 'var(--accent-warning)' }} />
-                Detected Warning Flags
+                Detected Warning Signals
               </h3>
+              <span style={{
+                fontSize: '11.5px',
+                fontWeight: 700,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-primary)',
+                backgroundColor: 'var(--bg-secondary)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color)'
+              }}>
+                Structural Indicators: {result.warning_signals?.length ?? result.warning_signs?.length ?? 0}
+              </span>
+            </div>
+
+            {result.warning_signals && result.warning_signals.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {result.warning_signals.map((sig, idx) => {
+                  const sev = (sig.severity || 'HIGH').toUpperCase();
+                  const badgeClass = sev === 'CRITICAL' 
+                    ? 'badge-critical' 
+                    : sev === 'HIGH' 
+                    ? 'badge-critical' 
+                    : sev === 'MEDIUM' 
+                    ? 'badge-warning' 
+                    : 'badge-neutral';
+                  
+                  const leftBorderColor = sev === 'CRITICAL'
+                    ? 'var(--accent-critical)'
+                    : sev === 'HIGH'
+                    ? 'var(--accent-critical)'
+                    : sev === 'MEDIUM'
+                    ? 'var(--accent-warning)'
+                    : 'var(--accent-green)';
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '14px 16px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid var(--border-color)',
+                        borderLeft: `4px solid ${leftBorderColor}`,
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        boxShadow: 'var(--shadow-sm)',
+                      }}
+                    >
+                      {/* 1. Header with severity */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)' }}>
+                          {sig.formatted_title || `[${sig.severity || 'High'}] ${sig.title || sig.signal || `Warning Flag #${idx + 1}`}`}
+                        </span>
+                        <span className={`badge ${badgeClass}`} style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                          {sig.severity || 'High'} Severity
+                        </span>
+                      </div>
+
+                      {/* 2. Plain-language explanation */}
+                      <div style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                        <strong style={{ color: 'var(--text-heading)' }}>What was detected & why it's risky: </strong>
+                        {sig.explanation || sig.description || sig.detail}
+                      </div>
+
+                      {/* 3. Practical safety action */}
+                      {(sig.safety_action || sig.action) && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
+                            backgroundColor: 'var(--bg-secondary)',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '8px',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          <strong style={{ color: 'var(--primary-accent)', whiteSpace: 'nowrap' }}>What to do next:</strong>
+                          <span>{sig.safety_action || sig.action}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : result.warning_signs && result.warning_signs.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {result.warning_signs.map((sign, idx) => (
                   <div
@@ -420,8 +512,49 @@ export const URLChecker = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div
+                style={{
+                  padding: '14px 16px',
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>
+                  No individual warning trigger was identified.
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  This URL did not match known structural warning signals (such as Punycode lookalikes, raw IP hosts, or obfuscating URL shorteners).
+                </p>
+                {result.risk_score >= 30 && (
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--accent-warning)',
+                      backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      marginTop: '4px',
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <strong>Notice:</strong> The model estimates elevated scam risk ({result.risk_score}/100) from the URL’s overall structural patterns, but no individual warning trigger was identified.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Official Support & Reporting Contacts (Get Help Section) */}
+          <GetHelpSection
+            initialCountry={country}
+            onCountryChange={(c) => setCountry(c)}
+          />
 
           {/* Safe Browsing Recommendations */}
           <div>

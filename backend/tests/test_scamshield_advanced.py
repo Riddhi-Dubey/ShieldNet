@@ -268,3 +268,70 @@ def test_elevated_probability_with_no_heuristic_triggers():
     assert "Exercise caution" in report
 
 
+def test_structured_warning_signals_and_safety_actions():
+    msg = "URGENT: Your SBI account has been suspended due to pending KYC update. Click http://sbi-kyc-verify-portal.in immediately to avoid permanent deactivation."
+    res = analyze_scam_message(msg, country="IN")
+
+    # Verify structured warning_signals
+    assert len(res.warning_signals) > 0
+    for sig in res.warning_signals:
+        assert "title" in sig and sig["title"]
+        assert "severity" in sig and sig["severity"]
+        assert "formatted_title" in sig and sig["formatted_title"].startswith("[")
+        assert "explanation" in sig and sig["explanation"]
+        assert "safety_action" in sig and sig["safety_action"]
+
+    # Verify detected_signals SignalDetail objects
+    for det in res.detected_signals:
+        assert det.title is not None
+        assert det.severity is not None
+        assert det.formatted_title is not None
+        assert det.explanation is not None
+        assert det.safety_action is not None
+
+    # Check that report contains formatted warning titles, explanations, and safety actions
+    report = res.report_text
+    assert "[High] Artificial Urgency & Threat" in report or "[High] Deceptive KYC / Identity Verification" in report or "[High] Suspicious Link" in report
+    assert "Explanation   :" in report
+    assert "Safety Action :" in report
+
+
+def test_official_regional_help_contacts():
+    # Test India (IN) contacts
+    res_in = analyze_scam_message("Suspicious test message", country="IN")
+    assert res_in.help_contacts is not None
+    assert res_in.help_contacts["country_code"] == "IN"
+    assert any(c["contact"] == "112" for c in res_in.help_contacts["emergency"])
+    assert any("cybercrime.gov.in" in c["contact"] for c in res_in.help_contacts["fraud_reporting"])
+    assert any("1930" in c["contact"] for c in res_in.help_contacts["fraud_reporting"])
+    assert any("1909" in c["contact"] for c in res_in.help_contacts["platform_support"])
+
+    # Test United States (US) contacts
+    res_us = analyze_scam_message("Suspicious test message", country="US")
+    assert res_us.help_contacts["country_code"] == "US"
+    assert any(c["contact"] == "911" for c in res_us.help_contacts["emergency"])
+    assert any("ic3.gov" in c["contact"] for c in res_us.help_contacts["fraud_reporting"])
+    assert any("reportfraud.ftc.gov" in c["contact"] for c in res_us.help_contacts["fraud_reporting"])
+
+    # Check that report includes help contacts section
+    assert "OFFICIAL HELP & REPORTING CONTACTS" in res_in.report_text
+    assert "1930" in res_in.report_text
+    assert "cybercrime.gov.in" in res_in.report_text
+    assert "112" in res_in.report_text
+
+
+def test_url_structured_warning_signals_and_help_contacts():
+    res_url = analyze_scam_url("http://sbi-card-reward-verify.online/login.php", country="IN")
+    assert len(res_url.warning_signals) > 0
+    for sig in res_url.warning_signals:
+        assert "title" in sig
+        assert "severity" in sig
+        assert "formatted_title" in sig
+        assert "explanation" in sig
+        assert "safety_action" in sig
+
+    assert res_url.help_contacts["country_code"] == "IN"
+    assert "OFFICIAL HELP & REPORTING CONTACTS" in res_url.report_text
+
+
+

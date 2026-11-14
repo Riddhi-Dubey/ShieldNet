@@ -19,6 +19,7 @@ import { analyseMessage, extractErrorMessage, downloadAnalysisReport } from '../
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 import PrivacyModal from '../components/PrivacyModal';
+import GetHelpSection from '../components/GetHelpSection';
 import { getMessageRiskAssessment, MESSAGE_PROBABILITY_THRESHOLDS } from '../utils/riskThresholds';
 
 const SAMPLE_SUSPICIOUS_MESSAGES = [
@@ -36,6 +37,7 @@ export const MessageChecker = () => {
   const [error, setError] = useState(null);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [consentForLlm, setConsentForLlm] = useState(false);
+  const [country, setCountry] = useState('IN');
 
   const handleTextChange = (e) => {
     setMessageText(e.target.value);
@@ -52,7 +54,7 @@ export const MessageChecker = () => {
     setResult(null);
 
     try {
-      const data = await analyseMessage(messageText.trim(), consentForLlm);
+      const data = await analyseMessage(messageText.trim(), consentForLlm, country);
       setResult(data);
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -531,33 +533,86 @@ export const MessageChecker = () => {
               </div>
 
               {result.warning_signals && result.warning_signals.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {result.warning_signals.map((sig, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '12px 16px',
-                        backgroundColor: 'var(--bg-secondary)',
-                        border: '1px solid var(--border-color)',
-                        borderLeft: '4px solid var(--accent-warning)',
-                        borderRadius: 'var(--radius-sm)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                          {sig.signal || sig.title || `Signal #${idx + 1}`}
-                        </span>
-                        {sig.severity && (
-                          <span className={`badge badge-${sig.severity.toLowerCase()}`}>
-                            {sig.severity}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {result.warning_signals.map((sig, idx) => {
+                    const sev = (sig.severity || 'HIGH').toUpperCase();
+                    const badgeClass = sev === 'CRITICAL' 
+                      ? 'badge-critical' 
+                      : sev === 'HIGH' 
+                      ? 'badge-critical' 
+                      : sev === 'MEDIUM' 
+                      ? 'badge-warning' 
+                      : 'badge-neutral';
+                    
+                    const leftBorderColor = sev === 'CRITICAL'
+                      ? 'var(--accent-critical)'
+                      : sev === 'HIGH'
+                      ? 'var(--accent-critical)'
+                      : sev === 'MEDIUM'
+                      ? 'var(--accent-warning)'
+                      : 'var(--accent-green)';
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '14px 16px',
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid var(--border-color)',
+                          borderLeft: `4px solid ${leftBorderColor}`,
+                          borderRadius: 'var(--radius-sm)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          boxShadow: 'var(--shadow-sm)',
+                        }}
+                      >
+                        {/* 1. Header with severity */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-heading)' }}>
+                            {sig.formatted_title || `[${sig.severity || 'High'}] ${sig.title || sig.signal || `Warning Signal #${idx + 1}`}`}
                           </span>
+                          <span className={`badge ${badgeClass}`} style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                            {sig.severity || 'High'} Severity
+                          </span>
+                        </div>
+
+                        {/* 2. Plain-language explanation */}
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                          <strong style={{ color: 'var(--text-heading)' }}>What was detected & why it's risky: </strong>
+                          {sig.explanation || sig.description}
+                        </div>
+
+                        {/* 3. Practical safety action */}
+                        {(sig.safety_action || sig.action) && (
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--text-secondary)',
+                              backgroundColor: 'var(--bg-secondary)',
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--border-color)',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '8px',
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            <strong style={{ color: 'var(--primary-accent)', whiteSpace: 'nowrap' }}>What to do next:</strong>
+                            <span>{sig.safety_action || sig.action}</span>
+                          </div>
+                        )}
+
+                        {/* Evidence context snippet */}
+                        {sig.evidence_snippet && (
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            Context: "{sig.evidence_snippet}"
+                          </div>
                         )}
                       </div>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                        {sig.explanation || sig.description}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div
@@ -572,7 +627,7 @@ export const MessageChecker = () => {
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>
-                    No individual rule-based warning triggers were identified.
+                    No individual warning trigger was identified.
                   </div>
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
                     This message did not match predefined trigger patterns (such as specific banking keywords, hardcoded urgency phrases, or credential-harvesting patterns).
@@ -590,78 +645,84 @@ export const MessageChecker = () => {
                         lineHeight: 1.45,
                       }}
                     >
-                      <strong>Important Notice on Metric Independence:</strong> A 0/100 heuristic indicator score does not cancel or disprove the model’s <strong>{result.ml_probability !== undefined && result.ml_probability !== null ? `${Number(result.ml_probability).toFixed(1)}% scam probability` : ''} ({riskAssessment.label})</strong>. Rule-based triggers search for exact keyword templates, whereas the statistical machine learning model evaluates broader linguistic patterns.
+                      <strong>Important Notice on Metric Independence:</strong> The model estimates elevated scam risk from the message’s overall text patterns, but no individual warning trigger was identified. A 0/100 heuristic indicator score does not cancel or disprove the model’s <strong>{result.ml_probability !== undefined && result.ml_probability !== null ? `${Number(result.ml_probability).toFixed(1)}% scam probability` : ''} ({riskAssessment.label})</strong>. Rule-based triggers search for exact keyword templates, whereas the statistical machine learning model evaluates broader linguistic patterns.
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-          {/* Safe Next Steps */}
-          <div>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle size={16} style={{ color: 'var(--accent-green)' }} />
-              Recommended Safe Next Steps
-            </h3>
+            {/* Official Support & Reporting Contacts (Get Help Section) */}
+            <GetHelpSection
+              initialCountry={country}
+              onCountryChange={(c) => setCountry(c)}
+            />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {(result.safe_next_steps || result.recommendations || [
-                'Do not click any embedded links or download attachments.',
-                'Never dial phone numbers provided inside the message.',
-                'Verify account status directly through the bank’s official mobile app.',
-                'Report and block the sender on your messaging app.',
-              ]).map((step, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '10px',
-                    fontSize: '13px',
-                    color: 'var(--text-secondary)',
-                    padding: '8px 12px',
-                    backgroundColor: 'var(--bg-secondary)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <span style={{ color: 'var(--primary-accent)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>✓</span>
-                  <span>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Report Option Action Bar */}
-          <div
-            style={{
-              padding: '16px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--primary-accent-light)',
-              border: '1px solid rgba(57, 127, 120, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '14px',
-            }}
-          >
+            {/* Safe Next Steps */}
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Help protect other citizens from this campaign
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                You can submit an incident report. You will review and consent before anything is shared.
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle size={16} style={{ color: 'var(--accent-green)' }} />
+                Recommended Safe Next Steps
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {(result.safe_next_steps || result.recommendations || [
+                  'Do not click any embedded links or download attachments.',
+                  'Never dial phone numbers provided inside the message.',
+                  'Verify account status directly through the bank’s official mobile app.',
+                  'Report and block the sender on your messaging app.',
+                ]).map((step, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px',
+                      fontSize: '13px',
+                      color: 'var(--text-secondary)',
+                      padding: '8px 12px',
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <span style={{ color: 'var(--primary-accent)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>✓</span>
+                    <span>{step}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <button
-              onClick={handleNavigateToReport}
-              className="btn btn-primary"
-              style={{ fontSize: '13px' }}
+            {/* Report Option Action Bar */}
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--primary-accent-light)',
+                border: '1px solid rgba(57, 127, 120, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px',
+              }}
             >
-              <FileWarning size={16} />
-              Forward to Report Form
-            </button>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Help protect other citizens from this campaign
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  You can submit an incident report. You will review and consent before anything is shared.
+                </div>
+              </div>
+
+              <button
+                onClick={handleNavigateToReport}
+                className="btn btn-primary"
+                style={{ fontSize: '13px' }}
+              >
+                <FileWarning size={16} />
+                Forward to Report Form
+              </button>
             </div>
           </div>
         );

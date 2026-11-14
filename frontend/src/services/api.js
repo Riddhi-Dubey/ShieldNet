@@ -131,17 +131,19 @@ export const getNetworkClusters = async () => {
 };
 
 // Message & URL Threat Checkers
-export const analyseMessage = async (messageText, consentForLlm = false) => {
+export const analyseMessage = async (messageText, consentForLlm = false, country = 'IN') => {
   const response = await apiClient.post('/api/analyse/message', { 
     message: messageText,
+    country,
     consent_for_llm: consentForLlm 
   });
   return response.data;
 };
 
-export const analyseUrl = async (url, consentForLlm = false) => {
+export const analyseUrl = async (url, consentForLlm = false, country = 'IN') => {
   const response = await apiClient.post('/api/analyse/url', { 
     url,
+    country,
     consent_for_llm: consentForLlm 
   });
   return response.data;

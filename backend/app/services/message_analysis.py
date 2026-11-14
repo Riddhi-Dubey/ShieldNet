@@ -10,6 +10,7 @@ from backend.app.services.risk_thresholds import (
 from backend.app.security.redaction import redact_sensitive_text
 from backend.app.services.report_generator import generate_plain_text_report
 from backend.app.services.llm_explainer import generate_llm_explanation
+from backend.app.services.help_contacts import get_help_contacts
 
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ml")
 MSG_MODEL_PATH = os.path.join(MODEL_DIR, "message_model.joblib")
@@ -71,100 +72,148 @@ def extract_model_features(model, vectorizer, text: str, top_k: int = 5) -> List
     except Exception:
         return []
 
-# Categorized threat pattern detectors
+# Categorized threat pattern detectors with plain-language titles, severities, explanations, and safety actions
 SIGNAL_PATTERNS = {
     "URGENCY": {
+        "title": "Artificial Urgency & Threat",
+        "severity": "High",
         "weight": 18.0,
         "category": "Psychological Coercion",
         "description": "High-pressure urgency tactics, threats of service disconnection, or legal panic",
+        "explanation": "The sender uses urgent deadlines or threats of disconnection to panic you into acting before verifying.",
+        "safety_action": "Pause and do not act immediately. Legitimate organizations provide advance written notice and never demand instant compliance.",
         "patterns": [
             r"\b(urgent|immediately|within\s+\d+\s*(?:hours?|mins?|minutes?)|account\s+(?:has\s+been\s+)?(?:blocked|suspended|deactivated|closed|frozen)|deactivated\s+today|last\s+notice|final\s+warning|expire\s+soon|immediate\s+action|power\s+(?:will\s+be\s+)?disconnected|power\s+cutoff|bill\s+unpaid|permanent\s+deactivation|avoid\s+permanent\s+deactivation)\b"
         ]
     },
     "KYC_HARVESTING": {
+        "title": "Deceptive KYC / Identity Verification",
+        "severity": "High",
         "weight": 28.0,
         "category": "Credential & Identity Harvesting",
         "description": "Deceptive solicitation of KYC verification, Aadhaar, or PAN card updates under penalty of suspension",
+        "explanation": "The message falsely claims your KYC is expired or suspended to trick you into submitting personal ID, PAN, or Aadhaar details.",
+        "safety_action": "Never submit identity documents or KYC forms via unsolicited links. Complete verification only inside your bank's official app or at a branch.",
         "patterns": [
             r"\b(pending\s+kyc|kyc\s+update|complete\s+(?:your\s+)?kyc|kyc\s+(?:has\s+)?expired|pan\s+(?:card\s+)?(?:link|update)|update\s+(?:your\s+)?kyc|link\s+aadhar|sim\s+verification|sim\s+block|kyc\s+suspended|send\s+(?:your\s+)?aadhar|aadhar\s+card)\b"
         ]
     },
     "ADVANCE_PAYMENT": {
+        "title": "Upfront Fee or Deposit Demand",
+        "severity": "High",
         "weight": 24.0,
         "category": "Financial Demand",
         "description": "Request for upfront advance fees, registration charges, or refundable security deposits",
+        "explanation": "The sender requests an advance payment, processing fee, or security deposit before releasing promised funds or goods.",
+        "safety_action": "Refuse to send advance money or deposits. Genuine employers, lotteries, and reputable buyers never require payment to pay you.",
         "patterns": [
             r"\b(processing\s+fee|registration\s+fee|security\s+deposit|advance\s+payment|refundable\s+deposit|customs\s+clearance\s+charge|pay\s+upfront|courier\s+fee)\b"
         ]
     },
     "OTP_REQUEST": {
+        "title": "One-Time Password (OTP) Solicitation",
+        "severity": "Critical",
         "weight": 30.0,
         "category": "Credential Extraction",
         "description": "Direct solicitation of One-Time Password (OTP) or authentication codes",
+        "explanation": "The message attempts to coax you into sharing a one-time passcode (OTP) or verification code.",
+        "safety_action": "Never share an OTP with anyone, including bank employees or support agents. OTPs approve irreversible account actions.",
         "patterns": [
             r"\b(share\s+(?:your\s+|the\s+)?(?:one[\s-]*time[\s-]*password\s+)?(?:otp|code)|send\s+(?:your\s+|the\s+)?(?:otp|code)|forward\s+(?:the\s+)?code|verify\s+(?:your\s+)?otp|tell\s+me\s+the\s+otp|enter\s+otp\s+on\s+call|one[\s-]*time[\s-]*password)\b"
         ]
     },
     "PIN_OR_PASSWORD": {
+        "title": "Direct PIN or Password Request",
+        "severity": "Critical",
         "weight": 32.0,
         "category": "Credential Theft",
         "description": "Direct request for UPI PIN, ATM PIN, or banking passwords",
+        "explanation": "The message directly requests your confidential UPI PIN, ATM PIN, or online banking password.",
+        "safety_action": "Never disclose your PIN or password. Entering your UPI PIN always debits funds from your account—it is never required to receive money.",
         "patterns": [
             r"\b(atm\s+pin|upi\s+pin|mpin|net\s*banking\s+password|login\s+password|secret\s+pin|enter\s+pin\s+to\s+receive)\b"
         ]
     },
     "PRIZE_OR_LOTTERY": {
+        "title": "Unsolicited Prize or Lottery Lure",
+        "severity": "Medium",
         "weight": 24.0,
         "category": "Baiting / Lottery Scam",
         "description": "Unsolicited claims of winnings, lucky draws, or massive cash rewards",
+        "explanation": "The sender claims you have won a contest, lottery, or cash prize for a promotion you never entered.",
+        "safety_action": "Ignore and delete the message. Legitimate sweepstakes do not contact winners via random SMS or demand fees to claim prizes.",
         "patterns": [
             r"\b(won\s+lottery|congratulations\s+you\s+(?:have\s+)?won|cash\s+prize|lucky\s+draw|kbc\s+lottery|selected\s+winner|claim\s+your\s+prize|car\s+reward|jackpot|won\s+(?:₹|rs\.?))\b"
         ]
     },
     "FAKE_EMPLOYMENT": {
+        "title": "Suspicious Job or Task Offer",
+        "severity": "Medium",
         "weight": 22.0,
         "category": "Job Fraud",
         "description": "Work-from-home offers promising excessive daily returns for trivial tasks",
+        "explanation": "The message promises unrealistically high pay for easy online tasks, usually leading to demands for prepaid task deposits.",
+        "safety_action": "Do not join private recruitment chat groups or pay task deposits. Verify career opportunities on official corporate portals.",
         "patterns": [
             r"\b(work\s+from\s+home\s+daily|part\s*time\s+(?:job|telegram)|like\s+youtube\s+videos?\s+and\s+earn|earn\s+\d{3,5}\s+per\s+day|no\s+experience\s+needed|part-time\s+task|merchant\s+task)\b"
         ]
     },
     "SUSPICIOUS_PAYMENT": {
+        "title": "Unusual Payment Method Request",
+        "severity": "High",
         "weight": 22.0,
         "category": "Payment Misdirection",
         "description": "Suspicious payment requests via gift cards, crypto transfers, or QR codes to receive funds",
+        "explanation": "The sender requests unconventional payments such as cryptocurrency, gift card vouchers, or scanning a QR code to receive funds.",
+        "safety_action": "Never scan a QR code to receive money. Scanning a QR code only authorizes outgoing debits from your bank account.",
         "patterns": [
             r"\b(scan\s+qr\s+to\s+receive|gift\s+card|crypto\s+transfer|usdt\s+deposit|send\s+money\s+to\s+vpa|pay\s+to\s+confirm)\b"
         ]
     },
     "IMPERSONATION": {
+        "title": "Impersonation of Trusted Institution",
+        "severity": "High",
         "weight": 22.0,
         "category": "Brand / Authority Impersonation",
         "description": "Impersonation of established banks, utility boards, tax authorities, or courier services",
+        "explanation": "The sender pretends to be an official bank, utility provider, or law enforcement agency to fabricate authority.",
+        "safety_action": "Do not trust sender caller IDs or SMS headers. Contact the institution directly using verified numbers from their official website.",
         "patterns": [
             r"\b(sbi(?:\b|\s+account|\s+yono|\s+card)|hdfc|icici|axis\s+bank|pnb\b|punjab\s+national|bank\s+of\s+baroda|kotak|canara|union\s+bank|rbi\b|reserve\s+bank|income\s*tax|mumbai\s+police|delhi\s+police|cyber\s*crime|electricity\s+(?:officer|board|dept)|fedex|dhl|india\s*post|post\s+office)\b"
         ]
     },
     "FAMILY_EMERGENCY": {
+        "title": "Impersonation of Family / Friend in Distress",
+        "severity": "High",
         "weight": 28.0,
         "category": "Social Engineering / Impersonation",
         "description": "Impersonation of family member or friend claiming emergency distress or phone loss",
+        "explanation": "The sender poses as a relative or friend using a temporary number and requesting urgent emergency money.",
+        "safety_action": "Call your family member or friend directly on their known regular phone number to confirm before transferring any money.",
         "patterns": [
             r"\b((?:hi|hello|hey)\s+(?:mom|dad|mama|papa|mum)|broke\s+my\s+phone|new\s+temporary\s+number|emergency\s+cab|pay\s+for\s+emergency|hospital\s+emergency)\b"
         ]
     },
     "SUSPICIOUS_CONTACT": {
+        "title": "Redirection to Private Messaging Channels",
+        "severity": "Medium",
         "weight": 16.0,
         "category": "Out-of-Band Channel",
         "description": "Redirection to unverified Telegram channels, WhatsApp numbers, or private chat handles",
+        "explanation": "The message attempts to move communication to unmonitored Telegram channels or private WhatsApp numbers to evade detection.",
+        "safety_action": "Communicate only through verified official channels and dispute portals. Avoid private chat handles for financial matters.",
         "patterns": [
             r"\b(t\.me\/[a-zA-Z0-9_]+|wa\.me\/\d+|telegram\s+channel|join\s+whatsapp\s+group|whatsapp\s+number|call\s+electricity\s+officer)\b"
         ]
     },
     "SUSPICIOUS_LINKS": {
+        "title": "Suspicious Link",
+        "severity": "High",
         "weight": 24.0,
         "category": "Deceptive URL / Phishing Link",
         "description": "Unverified web link embedded in unsolicited SMS or instant message",
+        "explanation": "The message contains an unverified URL or link shortener commonly used to obscure phishing and credential-stealing destinations.",
+        "safety_action": "Do not click or tap the link. If you need to access your account, open a web browser and type the official URL directly.",
         "patterns": [
             r"\bhttps?:\/\/[^\s]+",
             r"\b(?:bit\.ly|tinyurl\.com|is\.gd|t\.co|cutt\.ly|rb\.gy)\/[a-zA-Z0-9_\-]+",
@@ -174,7 +223,12 @@ SIGNAL_PATTERNS = {
 }
 
 
-def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool = False) -> MessageAnalysisResponse:
+def analyze_scam_message(
+    message: str,
+    sender: str = None,
+    country: str = "IN",
+    consent_for_llm: bool = False
+) -> MessageAnalysisResponse:
     """
     Performs explainable, privacy-preserving risk evaluation of a suspicious message.
     Redacts sensitive text in memory, applies compound risk multipliers, synthesizes calibrated ML probability,
@@ -205,12 +259,23 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
             contribution = round(weight, 1)
             base_score += contribution
 
+            title = rule.get("title", key.replace("_", " ").title())
+            severity = rule.get("severity", "High")
+            formatted_title = f"[{severity}] {title}"
+            explanation = rule.get("explanation", rule["description"])
+            safety_action = rule.get("safety_action", "Exercise caution and verify independently.")
+
             detected_signals.append(SignalDetail(
                 category=rule["category"],
                 signal_name=key,
                 weight=weight,
                 contribution=contribution,
                 description=rule["description"],
+                title=title,
+                severity=severity,
+                formatted_title=formatted_title,
+                explanation=explanation,
+                safety_action=safety_action,
                 evidence_snippet=redact_sensitive_text(evidence_snippet) if evidence_snippet else None
             ))
 
@@ -389,14 +454,18 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
     warning_signals = [
         {
             "signal": s.signal_name,
-            "title": s.signal_name.replace("_", " ").title(),
-            "severity": "CRITICAL" if (s.weight >= 26.0 and risk_level == "HIGH") else "HIGH" if risk_level == "HIGH" else "MEDIUM" if risk_level == "MEDIUM" else "LOW",
-            "explanation": s.description,
+            "title": s.title or s.signal_name.replace("_", " ").title(),
+            "severity": s.severity or ("CRITICAL" if (s.weight >= 26.0 and risk_level == "HIGH") else "HIGH" if risk_level == "HIGH" else "MEDIUM" if risk_level == "MEDIUM" else "LOW"),
+            "formatted_title": s.formatted_title or f"[{s.severity or 'High'}] {s.title or s.signal_name.replace('_', ' ').title()}",
+            "explanation": s.explanation or s.description,
             "description": s.description,
+            "safety_action": s.safety_action or "Exercise caution before responding or interacting.",
             "evidence_snippet": s.evidence_snippet
         }
         for s in detected_signals
     ]
+
+    help_contacts = get_help_contacts(country)
 
     assessment_notice = (
         "Automated risk assessment based on behavioral and structural patterns. "
@@ -420,6 +489,8 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         "ml_prediction": ml_prediction,
         "model_version": model_version,
         "model_type": model_type,
+        "country": country,
+        "help_contacts": help_contacts,
     }
 
     report_text = generate_plain_text_report("message", report_data)
@@ -443,6 +514,7 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         model_version=model_version,
         model_type=model_type,
         assessment_notice=assessment_notice,
+        help_contacts=help_contacts,
         report_text=report_text,
         llm_explanation=llm_explanation
     )
