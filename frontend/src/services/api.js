@@ -131,14 +131,34 @@ export const getNetworkClusters = async () => {
 };
 
 // Message & URL Threat Checkers
-export const analyseMessage = async (messageText) => {
-  const response = await apiClient.post('/api/analyse/message', { message: messageText });
+export const analyseMessage = async (messageText, consentForLlm = false) => {
+  const response = await apiClient.post('/api/analyse/message', { 
+    message: messageText,
+    consent_for_llm: consentForLlm 
+  });
   return response.data;
 };
 
-export const analyseUrl = async (url) => {
-  const response = await apiClient.post('/api/analyse/url', { url });
+export const analyseUrl = async (url, consentForLlm = false) => {
+  const response = await apiClient.post('/api/analyse/url', { 
+    url,
+    consent_for_llm: consentForLlm 
+  });
   return response.data;
+};
+
+// Client-side instant plain-text report downloader
+export const downloadAnalysisReport = (reportText, filename = 'shieldnet_analysis_report.txt') => {
+  if (!reportText) return;
+  const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 // AI Safety Assistant Chat

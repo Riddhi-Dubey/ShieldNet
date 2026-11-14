@@ -13,9 +13,12 @@ import {
   Cpu, 
   ShieldAlert,
   Calendar,
-  Layers
+  Layers,
+  Download,
+  Sparkles,
+  Info
 } from 'lucide-react';
-import { analyseUrl, extractErrorMessage } from '../services/api';
+import { analyseUrl, extractErrorMessage, downloadAnalysisReport } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 import PrivacyModal from '../components/PrivacyModal';
@@ -34,6 +37,19 @@ export const URLChecker = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+  const [consentForLlm, setConsentForLlm] = useState(false);
+
+  const handleUrlChange = (e) => {
+    setUrlInput(e.target.value);
+    if (result) setResult(null); // Clear stale results on input change
+    if (error) setError(null);
+  };
+
+  const handleUseSample = (sample) => {
+    setUrlInput(sample);
+    setResult(null); // Clear stale results when sample is picked
+    setError(null);
+  };
 
   const handleAnalyze = async (e) => {
     if (e) e.preventDefault();
@@ -44,13 +60,20 @@ export const URLChecker = () => {
     setResult(null);
 
     try {
-      const data = await analyseUrl(urlInput.trim());
+      const data = await analyseUrl(urlInput.trim(), consentForLlm);
       setResult(data);
     } catch (err) {
       setError(extractErrorMessage(err));
+      setResult(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadReport = () => {
+    if (!result?.report_text) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    downloadAnalysisReport(result.report_text, `shieldnet_url_assessment_${dateStr}.txt`);
   };
 
   return (
@@ -75,13 +98,19 @@ export const URLChecker = () => {
       <div className="cyber-card">
         <form onSubmit={handleAnalyze} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label className="form-label">SUSPICIOUS URL OR DOMAIN</label>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>SUSPICIOUS URL OR DOMAIN</span>
+              <span style={{ fontSize: '11px', color: urlInput.length > 1900 ? 'var(--accent-critical)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                {urlInput.length} / 2048 characters
+              </span>
+            </label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <input
                 type="text"
                 className="form-input"
+                maxLength={2048}
                 value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
+                onChange={handleUrlChange}
                 placeholder="e.g. http://sbi-reward-login.xyz or bit.ly/claim-prize"
                 style={{ fontFamily: 'var(--font-mono)' }}
               />
@@ -96,6 +125,20 @@ export const URLChecker = () => {
             </div>
           </div>
 
+          {/* AI Explainer Consent Opt-in */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <input
+              type="checkbox"
+              id="ai-url-explainer-consent"
+              checked={consentForLlm}
+              onChange={(e) => setConsentForLlm(e.target.checked)}
+              style={{ cursor: 'pointer', accentColor: 'var(--primary-accent)' }}
+            />
+            <label htmlFor="ai-url-explainer-consent" style={{ cursor: 'pointer', userSelect: 'none' }}>
+              Generate plain-language AI explanation (Sends only extracted non-sensitive structural indicators)
+            </label>
+          </div>
+
           {/* Quick Samples */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Try sample:</span>
@@ -103,7 +146,7 @@ export const URLChecker = () => {
               <button
                 key={idx}
                 type="button"
-                onClick={() => setUrlInput(sample)}
+                onClick={() => handleUseSample(sample)}
                 style={{
                   backgroundColor: 'var(--bg-secondary)',
                   border: '1px solid var(--border-color)',
@@ -209,12 +252,12 @@ export const URLChecker = () => {
                 )}
               </div>
 
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', wordBreak: 'break-all', fontFamily: 'var(--font-mono)' }}>
-                {result.url || urlInput}
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', wordBreak: 'break-all', fontFamily: 'var(--font-mono)' }}>
+                {result.redacted_url || result.url || urlInput}
               </h2>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>RISK INDEX</div>
                 <div style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-mono)', color: result.risk_score > 60 ? 'var(--accent-critical)' : result.risk_score > 30 ? 'var(--accent-warning)' : 'var(--accent-green)' }}>
@@ -222,8 +265,66 @@ export const URLChecker = () => {
                 </div>
               </div>
               <RiskBadge level={result.risk_level || result.riskLevel} score={result.risk_score ?? result.riskScore} size="lg" />
+
+              {result.report_text && (
+                <button
+                  type="button"
+                  onClick={handleDownloadReport}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '12px', padding: '7px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Download plain-text assessment dossier"
+                >
+                  <Download size={14} />
+                  Download Report (.txt)
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Assessment Notice Banner */}
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '6px',
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              fontSize: '12px',
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              lineHeight: 1.45,
+            }}
+          >
+            <Info size={16} style={{ color: 'var(--primary-accent)', flexShrink: 0 }} />
+            <span>
+              <strong>Assessment Scope: </strong>
+              {result.assessment_notice || "Automated static risk assessment based on lexical and structural features. Does not constitute legal proof. HTTPS encryption does not guarantee domain legitimacy."}
+            </span>
+          </div>
+
+          {/* Optional Plain-Language AI Explainer */}
+          {result.llm_explanation && (
+            <div
+              style={{
+                padding: '14px 16px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(57, 127, 120, 0.08)',
+                border: '1px solid rgba(57, 127, 120, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--primary-accent)' }}>
+                <Sparkles size={14} />
+                <span>Plain-Language AI Summary</span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
+                {result.llm_explanation}
+              </p>
+            </div>
+          )}
 
           {/* Domain Intelligence Details */}
           <div>

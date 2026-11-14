@@ -5,6 +5,8 @@ import joblib
 from backend.app.schemas.analysis import SignalDetail, MessageAnalysisResponse
 from backend.app.services.risk_scoring import calculate_risk_level
 from backend.app.security.redaction import redact_sensitive_text
+from backend.app.services.report_generator import generate_plain_text_report
+from backend.app.services.llm_explainer import generate_llm_explanation
 
 MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ml")
 MSG_MODEL_PATH = os.path.join(MODEL_DIR, "message_model.joblib")
@@ -59,7 +61,7 @@ SIGNAL_PATTERNS = {
         "category": "Credential Extraction",
         "description": "Direct solicitation of One-Time Password (OTP) or authentication codes",
         "patterns": [
-            r"\b(share\s+(?:the\s+)?otp|send\s+(?:the\s+)?(?:otp|code)|forward\s+(?:the\s+)?code|verify\s+(?:your\s+)?otp|tell\s+me\s+the\s+otp|enter\s+otp\s+on\s+call|one\s*time\s*password)\b"
+            r"\b(share\s+(?:your\s+|the\s+)?(?:one[\s-]*time[\s-]*password\s+)?(?:otp|code)|send\s+(?:your\s+|the\s+)?(?:otp|code)|forward\s+(?:the\s+)?code|verify\s+(?:your\s+)?otp|tell\s+me\s+the\s+otp|enter\s+otp\s+on\s+call|one[\s-]*time[\s-]*password)\b"
         ]
     },
     "PIN_OR_PASSWORD": {
@@ -131,10 +133,11 @@ SIGNAL_PATTERNS = {
 }
 
 
-def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisResponse:
+def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool = False) -> MessageAnalysisResponse:
     """
-    Performs explainable, heuristic rule-based risk evaluation of a suspicious message.
-    Redacts sensitive text, applies compound risk multipliers, and generates actionable safety guidance.
+    Performs explainable, privacy-preserving risk evaluation of a suspicious message.
+    Redacts sensitive text in memory, applies compound risk multipliers, synthesizes calibrated ML probability,
+    and generates actionable safety guidance without declaring definitive legal guilt.
     """
     detected_signals: List[SignalDetail] = []
     base_score = 0.0
@@ -193,6 +196,12 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
     if "PRIZE_OR_LOTTERY" in signal_keys and ("ADVANCE_PAYMENT" in signal_keys or "KYC_HARVESTING" in signal_keys):
         compound_boost += 25.0
 
+    # 5. OTP / PIN Request + Urgency, Cancellation or Payment Alert
+    if ("OTP_REQUEST" in signal_keys or "PIN_OR_PASSWORD" in signal_keys) and (
+        "URGENCY" in signal_keys or any(term in lower_text for term in ["cancel", "debit", "pending", "block", "verify", "payment"])
+    ):
+        compound_boost += 30.0
+
     # ML Model Prediction (TF-IDF + Calibrated Logistic Regression)
     model, vectorizer, meta = get_message_ml_artifacts()
     ml_prob: Optional[float] = None
@@ -206,10 +215,18 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
             prob = float(model.predict_proba(vec)[0][1]) * 100.0
             ml_prob = round(prob, 1)
             ml_prediction = "SCAM_OR_FRAUD" if ml_prob >= 50.0 else "BENIGN"
-            model_version = meta.get("model_version", "v1.0.0") if meta else "v1.0.0"
+            model_version = meta.get("model_version", "v1.1.0") if meta else "v1.1.0"
             model_type = meta.get("model_type", "TF-IDF + Calibrated Logistic Regression") if meta else "TF-IDF + Calibrated Logistic Regression"
         except Exception:
-            pass
+            ml_prob = None
+            ml_prediction = "UNCERTAIN"
+            model_version = "heuristic-fallback-v1.0"
+            model_type = "Rule-Based Heuristic Parser (ML Offline)"
+    else:
+        ml_prob = None
+        ml_prediction = "UNCERTAIN"
+        model_version = "heuristic-fallback-v1.0"
+        model_type = "Rule-Based Heuristic Parser (ML Offline)"
 
     raw_total = base_score + compound_boost
     if ml_prob is not None:
@@ -220,21 +237,33 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
             # Multi-layer defense: synthesize heuristic risk and ML probability
             risk_score = min(100.0, round(max(raw_total, (raw_total * 0.7) + (ml_prob * 0.3)), 1))
     else:
-        risk_score = min(100.0, round(raw_total, 1))
+        # ML model unavailable: Conservative heuristic scoring with explicit uncertainty disclosure
+        if raw_total == 0:
+            # Without ML model or heuristics, flag high uncertainty
+            risk_score = 15.0
+        else:
+            risk_score = min(100.0, round(raw_total, 1))
 
     risk_level = calculate_risk_level(risk_score)
 
     # Explanation generation
     if not detected_signals:
-        explanation = (
-            "No explicit known scam triggers (urgency coercion, OTP solicitation, credential harvesting, "
-            "fake job offers, lottery bait, or brand impersonation) were identified in this message."
-        )
+        if ml_prob is not None and ml_prob < 30.0:
+            explanation = (
+                "Automated scan did not identify prominent scam indicators (urgency coercion, OTP solicitation, "
+                "credential harvesting, or brand impersonation). Note: A low risk score does not guarantee safety; "
+                "always verify independently before sharing information."
+            )
+        else:
+            explanation = (
+                "No overt heuristic triggers matched. Note: Zero detected indicators does not guarantee that an unknown "
+                "message is benign. If the machine learning model was unavailable, exercise heightened caution."
+            )
     else:
         sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
         explanation = (
             f"Evaluated {len(detected_signals)} suspicious behavioral signal(s): {', '.join(sig_names)}. "
-            f"Compound threat correlation ({risk_score}/100) indicates significant risk of social engineering."
+            f"Compound threat correlation ({risk_score}/100) indicates significant risk of deceptive social engineering."
         )
 
     # Safe next steps tailored to findings
@@ -253,9 +282,9 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
         safe_steps.append("Report financial cyber fraud immediately to the National Cyber Crime Helpline at 1930 or https://cybercrime.gov.in.")
 
     limitations = (
-        "Heuristic analysis uses explainable pattern-matching rules and compound risk correlation. "
-        "It does not represent calibrated mathematical probability or definitive legal proof of fraud. "
-        "Zero detected indicators does NOT guarantee that an unknown message is benign."
+        "This evaluation is an automated risk assessment based on pattern-matching rules and calibrated machine learning. "
+        "It does NOT represent a legal determination or guaranteed proof of fraud. "
+        "A low score does NOT guarantee that an unsolicited message is benign."
     )
 
     redacted_preview = redact_sensitive_text(message)
@@ -272,14 +301,40 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
         for s in detected_signals
     ]
 
+    # Objective non-alarmist assessment verdicts
     if risk_score >= 70.0:
-        verdict = f"CRITICAL SCAM / PHISHING PATTERN DETECTED ({risk_score}/100)"
+        verdict = f"CRITICAL RISK ASSESSMENT — ELEVATED COERCION & HARVESTING PATTERNS ({risk_score}/100)"
     elif risk_score >= 40.0:
-        verdict = f"HIGH / MEDIUM FRAUD RISK DETECTED ({risk_score}/100)"
+        verdict = f"ELEVATED RISK ASSESSMENT — POTENTIAL FRAUD INDICATORS DETECTED ({risk_score}/100)"
     elif risk_score >= 15.0:
-        verdict = f"SUSPICIOUS SIGNALS DETECTED — EXERCISE CAUTION ({risk_score}/100)"
+        verdict = f"LOW-TO-MODERATE RISK ASSESSMENT — PROCEED WITH CAUTION ({risk_score}/100)"
     else:
-        verdict = "NO PROMINENT SCAM SIGNALS DETECTED — VERIFY INDEPENDENTLY"
+        verdict = f"LOW RISK ASSESSMENT — DOES NOT GUARANTEE SAFETY ({risk_score}/100)"
+
+    assessment_notice = (
+        "Automated risk assessment based on behavioral and structural patterns. "
+        "Does not constitute legal proof or a guaranteed fraud determination."
+    )
+
+    # Assemble data dict for report and optional LLM explainer
+    report_data = {
+        "risk_score": risk_score,
+        "risk_level": risk_level,
+        "verdict": verdict,
+        "detected_signals": detected_signals,
+        "warning_signals": warning_signals,
+        "explanation": explanation,
+        "summary": explanation,
+        "safe_next_steps": safe_steps,
+        "redacted_message_preview": redacted_preview,
+        "ml_probability": ml_prob,
+        "ml_prediction": ml_prediction,
+        "model_version": model_version,
+        "model_type": model_type,
+    }
+
+    report_text = generate_plain_text_report("message", report_data)
+    llm_explanation = generate_llm_explanation("message", report_data, user_consent=consent_for_llm)
 
     return MessageAnalysisResponse(
         risk_score=risk_score,
@@ -295,5 +350,8 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
         ml_prediction=ml_prediction,
         ml_probability=ml_prob,
         model_version=model_version,
-        model_type=model_type
+        model_type=model_type,
+        assessment_notice=assessment_notice,
+        report_text=report_text,
+        llm_explanation=llm_explanation
     )

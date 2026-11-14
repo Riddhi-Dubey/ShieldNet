@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  HelpCircle, 
-  CheckCircle2, 
-  XCircle, 
-  Award, 
-  ArrowRight, 
-  RefreshCw, 
-  Sparkles, 
+import {
+  HelpCircle,
+  CheckCircle2,
+  XCircle,
+  Award,
+  ArrowRight,
+  RefreshCw,
+  Sparkles,
   ShieldCheck,
   BookOpen
 } from 'lucide-react';

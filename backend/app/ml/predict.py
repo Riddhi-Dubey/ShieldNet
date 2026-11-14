@@ -83,8 +83,8 @@ def predict_url_phishing(url: str) -> Dict[str, Any]:
         "model_available": False,
         "model_version": "heuristic-fallback-v1.0",
         "model_algorithm": "LexicalHeuristics",
-        "prediction": "PHISHING" if is_phishing else "BENIGN",
-        "confidence": round(min(1.0, heuristic_score / 100.0), 3),
+        "prediction": "PHISHING" if is_phishing else "UNCERTAIN",
+        "confidence": round(min(1.0, max(0.3, heuristic_score / 100.0)), 3),
         "phishing_probability": round(min(1.0, heuristic_score / 100.0), 3),
         "features": features
     }

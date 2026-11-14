@@ -47,20 +47,37 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware (Restricted to configured origins & Vercel deployment domains)
-raw_origins = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
-)
-origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+# CORS Configuration: Strictly restricted to verified local & production origins
+# Prevents wildcard credentials vulnerabilities (RFC 6454 / W3C CORS specification)
+DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000"
+]
+
+raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+parsed_origins = []
+if raw_origins:
+    for o in raw_origins.split(","):
+        cleaned = o.strip().rstrip("/")
+        # Reject wildcard '*' when credentials are true (invalid CORS security hazard)
+        if cleaned and cleaned != "*" and (cleaned.startswith("http://") or cleaned.startswith("https://")):
+            parsed_origins.append(cleaned)
+
+allowed_origins = parsed_origins if parsed_origins else DEFAULT_ALLOWED_ORIGINS
+
+# Deployment preview regex (e.g. Vercel deployment branches)
+raw_regex = os.getenv("ALLOWED_ORIGIN_REGEX", r"https://.*\.vercel\.app")
+origin_regex = None if raw_regex.strip().lower() in ("", "none", "false") else raw_regex
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if origins else ["*"],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=allowed_origins,
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
 )
 
 # Rate Limiting Middleware (In-memory token bucket / sliding window per client IP)

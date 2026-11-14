@@ -12,9 +12,10 @@ import {
   HelpCircle,
   Copy,
   Info,
-  Cpu
+  Cpu,
+  Download
 } from 'lucide-react';
-import { analyseMessage, extractErrorMessage } from '../services/api';
+import { analyseMessage, extractErrorMessage, downloadAnalysisReport } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 import PrivacyModal from '../components/PrivacyModal';
@@ -33,6 +34,13 @@ export const MessageChecker = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+  const [consentForLlm, setConsentForLlm] = useState(false);
+
+  const handleTextChange = (e) => {
+    setMessageText(e.target.value);
+    if (result) setResult(null); // Clear stale results on input change
+    if (error) setError(null);
+  };
 
   const handleAnalyze = async (e) => {
     if (e) e.preventDefault();
@@ -43,10 +51,11 @@ export const MessageChecker = () => {
     setResult(null);
 
     try {
-      const data = await analyseMessage(messageText.trim());
+      const data = await analyseMessage(messageText.trim(), consentForLlm);
       setResult(data);
     } catch (err) {
       setError(extractErrorMessage(err));
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -54,6 +63,14 @@ export const MessageChecker = () => {
 
   const handleUseSample = (sample) => {
     setMessageText(sample);
+    setResult(null); // Clear stale results when sample is chosen
+    setError(null);
+  };
+
+  const handleDownloadReport = () => {
+    if (!result?.report_text) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    downloadAnalysisReport(result.report_text, `shieldnet_message_assessment_${dateStr}.txt`);
   };
 
   const handleNavigateToReport = () => {
@@ -90,19 +107,34 @@ export const MessageChecker = () => {
           <div>
             <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>PASTE SUSPICIOUS MESSAGE TEXT</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                {messageText.length} characters
+              <span style={{ fontSize: '11px', color: messageText.length > 2800 ? 'var(--accent-critical)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                {messageText.length} / 3000 characters
               </span>
             </label>
 
             <textarea
               className="form-textarea"
               rows={5}
+              maxLength={3000}
               value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
+              onChange={handleTextChange}
               placeholder="Paste SMS message, email snippet, or WhatsApp text here..."
               style={{ resize: 'vertical', fontSize: '14px' }}
             />
+          </div>
+
+          {/* AI Explainer Consent Opt-in */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <input
+              type="checkbox"
+              id="ai-explainer-consent"
+              checked={consentForLlm}
+              onChange={(e) => setConsentForLlm(e.target.checked)}
+              style={{ cursor: 'pointer', accentColor: 'var(--primary-accent)' }}
+            />
+            <label htmlFor="ai-explainer-consent" style={{ cursor: 'pointer', userSelect: 'none' }}>
+              Generate plain-language AI explanation (Sends only extracted non-sensitive threat indicators; never raw message text)
+            </label>
           </div>
 
           {/* Privacy Note & Zero-Storage Limits */}
@@ -255,7 +287,7 @@ export const MessageChecker = () => {
               </h2>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>THREAT SCORE</div>
                 <div style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-mono)', color: result.risk_score > 70 ? 'var(--accent-critical)' : result.risk_score > 40 ? 'var(--accent-warning)' : 'var(--accent-green)' }}>
@@ -263,8 +295,66 @@ export const MessageChecker = () => {
                 </div>
               </div>
               <RiskBadge level={result.risk_level || result.riskLevel} score={result.risk_score ?? result.riskScore} size="lg" />
+
+              {result.report_text && (
+                <button
+                  type="button"
+                  onClick={handleDownloadReport}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '12px', padding: '7px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Download plain-text assessment dossier"
+                >
+                  <Download size={14} />
+                  Download Report (.txt)
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Assessment Scope Notice Banner */}
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '6px',
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              fontSize: '12px',
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              lineHeight: 1.45,
+            }}
+          >
+            <Info size={16} style={{ color: 'var(--primary-accent)', flexShrink: 0 }} />
+            <span>
+              <strong>Assessment Notice: </strong>
+              {result.assessment_notice || "Automated risk assessment based on behavioral patterns. Does not constitute legal proof or a guaranteed fraud determination."}
+            </span>
+          </div>
+
+          {/* Optional Plain-Language AI Explainer */}
+          {result.llm_explanation && (
+            <div
+              style={{
+                padding: '14px 16px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(57, 127, 120, 0.08)',
+                border: '1px solid rgba(57, 127, 120, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--primary-accent)' }}>
+                <Sparkles size={14} />
+                <span>Plain-Language AI Summary</span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
+                {result.llm_explanation}
+              </p>
+            </div>
+          )}
 
           {/* Warning Signals List */}
           <div>

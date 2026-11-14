@@ -54,18 +54,22 @@ def calculate_shannon_entropy(text: str) -> float:
     return round(float(entropy), 4)
 
 
+from backend.app.security.validation import sanitize_and_redact_url
+
 def extract_url_features(url: str) -> Dict[str, float]:
     """
     Extracts 16 explainable lexical and structural features from a URL string.
     Does NOT perform external network requests (prevents SSRF and request leakage).
+    Handles IDN/Unicode, IPv4/IPv6, embedded credentials, and query parameter patterns.
     """
     raw_url = url.strip()
-    norm_url = raw_url
-    if not (norm_url.startswith("http://") or norm_url.startswith("https://") or norm_url.startswith("ftp://")):
-        norm_url = "http://" + norm_url
+    if not raw_url:
+        return {name: 0.0 for name in FEATURE_NAMES}
 
-    parsed = urlparse(norm_url)
-    domain = (parsed.hostname or parsed.netloc or "").lower()
+    canonical_url, _, meta = sanitize_and_redact_url(raw_url)
+    parsed = urlparse(canonical_url)
+
+    domain = meta.get("punycode_host") or (parsed.hostname or parsed.netloc or "").lower()
     path = parsed.path or ""
 
     # Features:
@@ -76,9 +80,8 @@ def extract_url_features(url: str) -> Dict[str, float]:
     hyphen_count = float(raw_url.count("-"))
     digit_count = float(sum(c.isdigit() for c in raw_url))
 
-    # IP address in host
-    ip_pattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    has_ip = 1.0 if ip_pattern.match(domain) else 0.0
+    # IP address in host (IPv4 or IPv6)
+    has_ip = 1.0 if meta.get("is_ip") else (1.0 if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', domain) else 0.0)
 
     # Suspicious keywords
     url_lower = raw_url.lower()
@@ -98,11 +101,11 @@ def extract_url_features(url: str) -> Dict[str, float]:
     # Shortener presence
     is_shortener = 1.0 if any(sh in domain for sh in SHORTENER_DOMAINS) else 0.0
 
-    # Punycode presence
-    is_punycode = 1.0 if "xn--" in domain else 0.0
+    # Punycode / IDN presence
+    is_punycode = 1.0 if (meta.get("is_idn") or "xn--" in domain) else 0.0
 
-    # @ symbol presence (used in phishing URLs to obscure real host)
-    has_at_symbol = 1.0 if "@" in raw_url else 0.0
+    # @ symbol or embedded credentials presence
+    has_at_symbol = 1.0 if ("@" in raw_url or meta.get("has_credentials")) else 0.0
 
     # High-abuse TLD
     has_abuse_tld = 1.0 if any(domain.endswith(tld) for tld in HIGH_ABUSE_TLDS) else 0.0

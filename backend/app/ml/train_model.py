@@ -1,8 +1,14 @@
 import os
+import sys
 import csv
 import json
 from datetime import datetime, timezone
 from urllib.parse import urlparse
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -33,82 +39,84 @@ DATASET_CSV = os.path.join(DATA_DIR, "phishing_dataset.csv")
 # 1. Authentic Phishing and Legitimate Training URLs
 # Sourced from PhishTank patterns, OpenPhish feeds, and Tranco/Alexa Top Authoritative Domains
 PHISHING_SAMPLES = [
-    # Banking & Financial Spoofing
-    "http://secure-sbi-login.verify-portal.invalid/update-kyc",
+    # Banking & Financial Spoofing (Note: modern phishing extensively uses free TLS / HTTPS certificates)
+    "https://secure-sbi-login.verify-portal.invalid/update-kyc",
     "http://sbi-kyc-verify-portal.in/login.php",
-    "http://hdfc-netbanking-alert.security-auth.invalid/verify",
-    "http://icici-verify-account.info.invalid/session/update",
-    "http://axis-bank-pan-card-link.support-kyc.invalid/verify",
-    "http://kotak-811-kyc-reactivation.security-alert.invalid/form",
+    "https://hdfc-netbanking-alert.security-auth.invalid/verify",
+    "https://icici-verify-account.info.invalid/session/update",
+    "https://axis-bank-pan-card-link.support-kyc.invalid/verify",
+    "https://kotak-811-kyc-reactivation.security-alert.invalid/form",
     "http://punjab-national-bank-fraud-dept.support-update.invalid/case",
-    "http://bank-of-baroda-reward-points.redeem-portal.invalid/claim",
-    "http://secure-paypal-confirm-account.fraud-alert.invalid/webapps",
-    "http://chase-security-verify-identity.auth-flow.invalid/signin",
-    "http://wellsfargo-account-suspended-online.service-center.invalid/alert",
-    "http://barclays-protect-unauthorized-access.online-bank.invalid/secure",
+    "https://bank-of-baroda-reward-points.redeem-portal.invalid/claim",
+    "https://secure-paypal-confirm-account.fraud-alert.invalid/webapps",
+    "https://chase-security-verify-identity.auth-flow.invalid/signin",
+    "https://wellsfargo-account-suspended-online.service-center.invalid/alert",
+    "https://barclays-protect-unauthorized-access.online-bank.invalid/secure",
     "http://paytm-kyc-expired-urgent.service-center.invalid/kyc",
-    "http://phonepe-reward-scratchcard.offers-win.invalid/collect",
-    "http://gpay-cashback-voucher-claim.promotions.invalid/redeem",
-    "http://upi-rewards-cashback-gpay.offers-promotions.invalid/vpa",
+    "https://phonepe-reward-scratchcard.offers-win.invalid/collect",
+    "https://gpay-cashback-voucher-claim.promotions.invalid/redeem",
+    "https://upi-rewards-cashback-gpay.offers-promotions.invalid/vpa",
     # Utility & Authority Coercion ("Digital Arrest" & Fake Bills)
-    "http://electricity-bill-power-cutoff.payment-gateway.invalid/bill",
+    "https://electricity-bill-power-cutoff.payment-gateway.invalid/bill",
     "http://bses-delhi-power-disconnection-alert.bill-pay.invalid/pay",
-    "http://fedex-parcel-customs-hold.courier-clearance.invalid/pay",
-    "http://dhl-express-duty-payment.parcel-tracking.invalid/release",
+    "https://fedex-parcel-customs-hold.courier-clearance.invalid/pay",
+    "https://dhl-express-duty-payment.parcel-tracking.invalid/release",
     "http://post-office-parcel-undelivered.postal-tracking.invalid/fee",
-    "http://income-tax-refund-claim-approval.dept.invalid/itr-v",
-    "http://cyber-police-notice-digital-arrest.cbi-gov.invalid/summons",
+    "https://income-tax-refund-claim-approval.dept.invalid/itr-v",
+    "https://cyber-police-notice-digital-arrest.cbi-gov.invalid/summons",
     "http://epfo-claim-kyc-approval.provident-fund.invalid/status",
-    "http://challan-parivahan-traffic-fine.payment-portal.invalid/pay",
-    "http://airtel-sim-5g-upgrade.esim-verification.invalid/kyc",
+    "https://challan-parivahan-traffic-fine.payment-portal.invalid/pay",
+    "https://airtel-sim-5g-upgrade.esim-verification.invalid/kyc",
     "http://jio-free-5g-data-recharge.promotions-offer.invalid/claim",
-    "http://is.gd/airtel-sim-kyc-update",
+    "https://is.gd/airtel-sim-kyc-update",
     # Tech Giant & Cloud Credential Harvesters
-    "http://appleid-device-locked.icloud-security.invalid/auth",
-    "http://microsoft-365-password-expired.office-portal.invalid/reset",
-    "http://google-drive-shared-invoice.file-download.invalid/doc?id=238",
-    "http://netflix-billing-suspended.account-update.invalid/payment",
+    "https://appleid-device-locked.icloud-security.invalid/auth",
+    "https://microsoft-365-password-expired.office-portal.invalid/reset",
+    "https://google-drive-shared-invoice.file-download.invalid/doc?id=238",
+    "https://netflix-billing-suspended.account-update.invalid/payment",
     "http://amazon-order-refund-resolution.invalid/help?order=3948",
-    "http://meta-business-verification-badge.facebook-support.invalid/apply",
-    "http://whatsapp-account-unban-request.verify-center.invalid/appeal",
-    "http://dropbox-shared-confidential-document.cloud-viewer.invalid/view",
+    "https://meta-business-verification-badge.facebook-support.invalid/apply",
+    "https://whatsapp-account-unban-request.verify-center.invalid/appeal",
+    "https://dropbox-shared-confidential-document.cloud-viewer.invalid/view",
     # Cryptocurrency Doublers & Fraud Investment
-    "http://cryptocurrency-doubler-investment.yield-farm.invalid/deposit",
-    "http://binance-unauthorized-withdrawal-alert.sec-check.invalid/auth",
-    "http://metamask-sync-wallet-seed-phrase.validator.invalid/connect",
-    "http://trustwallet-airdrop-claim-bonus.dapp-reward.invalid/claim",
-    "http://coinbase-pro-security-lockout.auth-check.invalid/verify",
+    "https://cryptocurrency-doubler-investment.yield-farm.invalid/deposit",
+    "https://binance-unauthorized-withdrawal-alert.sec-check.invalid/auth",
+    "https://metamask-sync-wallet-seed-phrase.validator.invalid/connect",
+    "https://trustwallet-airdrop-claim-bonus.dapp-reward.invalid/claim",
+    "https://coinbase-pro-security-lockout.auth-check.invalid/verify",
     "http://free-usdt-tether-airdrop-portal.tron-giveaway.invalid/get",
     # Lottery, Prizes, & Task Fraud
-    "http://free-iphone-winner-kbc.claim-reward.invalid/register",
+    "https://free-iphone-winner-kbc.claim-reward.invalid/register",
     "http://kbc-lottery-jio-lucky-draw.winner-selection.invalid/form",
-    "http://telegram-work-daily-payout.invalid/task?ref=98765",
+    "https://telegram-work-daily-payout.invalid/task?ref=98765",
     "http://whatapp-gold-exclusive-download.apk-installer.invalid/get",
-    "http://part-time-youtube-review-job.merchant-task.invalid/join",
-    "http://instant-personal-loan-no-cibil.fast-credit.invalid/apply",
+    "https://part-time-youtube-review-job.merchant-task.invalid/join",
+    "https://instant-personal-loan-no-cibil.fast-credit.invalid/apply",
     # Raw IP Address Hosting (High Phishing Probability)
     "http://192.168.1.100/bank-signin/index.php",
-    "http://185.220.101.5/banking/login.html",
+    "https://185.220.101.5/banking/login.html",
     "http://103.20.12.54/fake-login/sbi.html",
     "http://45.134.20.12/update-credentials.aspx",
     "http://194.26.29.112/auth/login.php?client=sbi",
-    "http://178.128.45.6/online-banking/verify",
+    "https://178.128.45.6/online-banking/verify",
     # Obfuscating URL Shorteners & Redirectors
-    "http://bit.ly/sbi-urgent-reward-2026",
-    "http://tinyurl.com/free-usdt-airdrop-bonus",
-    "http://t.co/claim-crypto-bonus-now",
-    "http://cutt.ly/instant-loan-approval-no-documents",
+    "https://bit.ly/sbi-urgent-reward-2026",
+    "https://tinyurl.com/free-usdt-airdrop-bonus",
+    "https://t.co/claim-crypto-bonus-now",
+    "https://cutt.ly/instant-loan-approval-no-documents",
     "http://is.gd/verify-hdfc-otp",
-    "http://rb.gy/electricity-bill-clearance",
+    "https://rb.gy/electricity-bill-clearance",
     # Punycode & Lookalike Domain Spoofing
-    "http://xn--sbi-9cd.invalid/banking-portal",
-    "http://xn--paypa-gsa.invalid/signin",
-    "http://xn--gogle-p7a.invalid/account-recovery",
-    # Nested Subdomain Masquerades
-    "http://secure.login.sbi.co.in.portal-services.xyz/update",
-    "http://netbanking.hdfcbank.com.auth-security.top/login",
-    "http://accounts.google.com.signin-service.online/auth",
-    "http://appleid.apple.com.verify-device.click/signin"
+    "https://xn--sbi-9cd.invalid/banking-portal",
+    "https://xn--paypa-gsa.invalid/signin",
+    "https://xn--gogle-p7a.invalid/account-recovery",
+    # Nested Subdomain Masquerades & Embedded Credentials
+    "https://secure.login.sbi.co.in.portal-services.xyz/update",
+    "https://netbanking.hdfcbank.com.auth-security.top/login",
+    "https://accounts.google.com.signin-service.online/auth",
+    "http://appleid.apple.com.verify-device.click/signin",
+    "http://admin:login@sbi-account-restore.portal-auth.invalid/session",
+    "https://user:secret@hdfc-security-check.netbanking-auth.invalid/login"
 ]
 
 BENIGN_SAMPLES = [

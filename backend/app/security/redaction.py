@@ -5,9 +5,9 @@ from typing import Dict, Any, List
 PHONE_REGEX = re.compile(r'(?:\+?91[\s.-]?)?[6-9]\d{9}\b')
 CARD_REGEX = re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{15,16}\b')
 BANK_ACC_REGEX = re.compile(r'\b(?:account|acct|acc|a/c)(?:\s+is|\s*[:=]|\s*number|\s*no\.?)*\s*(\d{9,18})\b', re.IGNORECASE)
-OTP_REGEX = re.compile(r'\b(?:otp|one[\s-]?time[\s-]?password|code|verification[\s-]?code|pin)(?:\s+is|\s*[:=]|\s+number)*\s*([0-9]{4,8})\b', re.IGNORECASE)
+OTP_REGEX = re.compile(r'\b(?:otp|one[\s-]?time[\s-]?password|verification[\s-]?code|security[\s-]?code|pin)(?:\s+is|\s*[:=]|\s+number|\s+otp)*\s*([0-9]{4,8})\b', re.IGNORECASE)
 UPI_REGEX = re.compile(r'\b[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}\b')
-PASSWORD_REGEX = re.compile(r'\b(?:password|passwd|pwd|pass)(?:\s+is|\s*[:=])*\s+([^\s,]{3,64})', re.IGNORECASE)
+PASSWORD_REGEX = re.compile(r'\b(?:password|passwd|pwd)(?:\s+is|\s*[:=])*\s+([^\s,]{3,64})', re.IGNORECASE)
 AADHAAR_REGEX = re.compile(r'\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b')
 
 
@@ -22,11 +22,11 @@ def redact_sensitive_text(text: str) -> str:
 
     redacted = text
 
+    # Redact explicit OTPs and PINs first (before password captures)
+    redacted = OTP_REGEX.sub(r'otp: [REDACTED_OTP]', redacted)
+
     # Redact explicit passwords
     redacted = PASSWORD_REGEX.sub(r'password: [REDACTED_PASSWORD]', redacted)
-
-    # Redact explicit OTPs and PINs
-    redacted = OTP_REGEX.sub(r'otp: [REDACTED_OTP]', redacted)
 
     # Redact Aadhaar numbers
     redacted = AADHAAR_REGEX.sub('[REDACTED_AADHAAR]', redacted)

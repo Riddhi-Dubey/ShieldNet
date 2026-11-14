@@ -87,9 +87,10 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
               When you paste messages into the Message Checker or inspect domains in the URL Checker, your text is analyzed strictly in volatile application memory (RAM).
             </p>
             <ul style={{ paddingLeft: '20px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <li><strong>Zero Database Writes:</strong> The scanning endpoint (<code style={{ color: 'var(--primary-accent)' }}>POST /api/analyse/message</code>) does not accept or open any database session. 0 bytes are persisted to SQLite or disk logs.</li>
-              <li><strong>Zero Third-Party AI Leakage:</strong> Analysis runs purely on deterministic local machine learning and heuristic pattern matchers. No user text is ever routed to external cloud AI APIs.</li>
-              <li><strong>Verification in Source Code:</strong> You can inspect <code style={{ color: 'var(--primary-accent)' }}>backend/app/api/scamshield.py</code> to verify that the analysis function operates with no database commit calls.</li>
+              <li><strong>Zero Database Writes:</strong> The scanning endpoints (<code style={{ color: 'var(--primary-accent)' }}>POST /api/analyse/message</code> and <code style={{ color: 'var(--primary-accent)' }}>POST /api/analyse/url</code>) operate strictly in volatile application memory. 0 bytes are persisted to SQLite database tables or disk logs.</li>
+              <li><strong>Local & Privacy-Preserving AI:</strong> Analysis runs on deterministic local machine learning and heuristic pattern matchers. If you choose to enable the optional AI Explainer, only non-sensitive extracted threat signals and redacted context are transmitted; your raw message text is NEVER shared.</li>
+              <li><strong>URL Credential & Token Redaction:</strong> Any embedded credentials (<code style={{ color: 'var(--primary-accent)' }}>user:pass@host</code>) and sensitive query parameters (tokens, passwords, session keys, emails) are scrubbed before evaluation or display.</li>
+              <li><strong>Verification in Source Code:</strong> You can inspect <code style={{ color: 'var(--primary-accent)' }}>backend/app/api/scamshield.py</code> to verify that the scanning functions operate without database sessions or disk commits.</li>
             </ul>
           </div>
 

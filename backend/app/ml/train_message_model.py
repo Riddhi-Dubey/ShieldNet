@@ -118,7 +118,22 @@ TRAINING_SAMPLES = [
     ("Hey Rahul, happy birthday! Hope you have a wonderful year ahead filled with joy and success.", 0, "Personal Greeting"),
     ("Good morning everyone, the college bus on Route 14 will run 15 minutes late today due to road repairs near civil lines.", 0, "Campus Notice"),
     ("Can you please share the lecture notes for yesterday's machine learning class on support vector machines?", 0, "Academic Notice"),
-    ("Hi doc, I wanted to confirm my appointment for routine dental checkup tomorrow at 5:00 PM.", 0, "Healthcare Appointment")
+    ("Hi doc, I wanted to confirm my appointment for routine dental checkup tomorrow at 5:00 PM.", 0, "Healthcare Appointment"),
+    ("Dear Priya, please remember to pay your quarterly housing society maintenance of Rs 4,500 by the 10th of this month.", 0, "Bill Reminder"),
+    ("Your university semester examination fee of Rs 1,500 is due on Friday. Check the student intranet portal for details.", 0, "Academic Notice"),
+    ("Uber: Your ride with driver Suresh is arriving in 3 mins. Start code for your trip is 4821.", 0, "Ride OTP"),
+    ("Dear taxpayer, your ITR-V for AY 2026-27 has been received and e-verified successfully. Acknowledgment number 928192849.", 0, "Tax Acknowledgment"),
+    ("Apollo Pharmacy: Your order for generic medicines #AP9281 is ready for store pickup at Green Park branch.", 0, "Pharmacy Notice"),
+
+    # Additional Modern Scam & Lure Samples (label = 1)
+    ("Dear user, your SIM card will be deactivated within 1 hour due to non-upgraded 5G e-KYC. Call telecom verification officer at 9876543219 immediately.", 1, "SIM Deactivation"),
+    ("Urgent: Unauthorized transaction of Rs 89,000 detected on your credit card. Call fraud department immediately at 9123456789 to cancel debit.", 1, "Bank Fraud Alert Phishing"),
+    ("Customs seized a parcel containing illegal foreign currency addressed to your PAN card. Pay fine Rs 45,000 to avoid arrest under PMLA.", 1, "Digital Arrest"),
+    ("Pre-approved loan! Get instant personal loan of Rs 5,00,000 at 2% interest. Deposit processing charge Rs 3,500 to account 9281928 to release fund.", 1, "Fake Loan"),
+    ("Google Rating work from home: Earn Rs 2,500 daily on mobile. Just review 5 hotels. Join telegram channel t.me/official_work_task_2026", 1, "Job Scam"),
+    ("You have received a scratch card reward of Rs 7,500 from PhonePe. Click https://reward-claim-pe.top/pay to enter UPI PIN and collect reward.", 1, "UPI QR Fraud"),
+    ("Notice from Electricity Board: Your power supply will be cut at 10 PM today due to unupdated bill software. Call electricity in-charge at 9988112233.", 1, "Utility Coercion"),
+    ("Income Tax Notice: Tax refund of Rs 34,500 approved for your account. Submit bank account number and net banking password at http://incometax-refund-claim.site to credit.", 1, "Tax Phishing")
 ]
 
 

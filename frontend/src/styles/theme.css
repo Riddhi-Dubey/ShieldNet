@@ -1,28 +1,44 @@
 :root {
   /* ShieldNet Design System — Modern Light Cybersecurity Theme */
-  --bg-primary: #F7F9F8;        /* Warm off-white main background */
-  --bg-secondary: #F0F4F2;      /* Soft neutral secondary background */
-  --bg-card: #FFFFFF;           /* Clean white card surface */
-  --bg-card-hover: #F9FBFA;     /* Subtle hover on cards */
-  --bg-card-subtle: #F3F7F5;    /* Soft card tint */
-  --border-color: #E2E9E6;      /* Clean light grey/sage border */
-  --border-subtle: #EEF3F0;     /* Ultra-light separator */
-  --border-hover: #C5D5CF;      /* Highlighted border */
+  --bg-primary: #F7F9F8;
+  /* Warm off-white main background */
+  --bg-secondary: #F0F4F2;
+  /* Soft neutral secondary background */
+  --bg-card: #FFFFFF;
+  /* Clean white card surface */
+  --bg-card-hover: #F9FBFA;
+  /* Subtle hover on cards */
+  --bg-card-subtle: #F3F7F5;
+  /* Soft card tint */
+  --border-color: #E2E9E6;
+  /* Clean light grey/sage border */
+  --border-subtle: #EEF3F0;
+  /* Ultra-light separator */
+  --border-hover: #C5D5CF;
+  /* Highlighted border */
 
   /* Accent Colors — Balanced Cybersecurity SaaS Palette */
-  --primary-accent: #397F78;       /* Muted authoritative teal */
-  --primary-accent-hover: #2D6761; /* Darker teal for button hovers */
-  --primary-accent-light: #EAF3F0; /* Soft teal background */
-  --secondary-accent: #6C91A5;     /* Slate / subtle blue */
+  --primary-accent: #397F78;
+  /* Muted authoritative teal */
+  --primary-accent-hover: #2D6761;
+  /* Darker teal for button hovers */
+  --primary-accent-light: #EAF3F0;
+  /* Soft teal background */
+  --secondary-accent: #6C91A5;
+  /* Slate / subtle blue */
   --secondary-accent-light: #F0F5F8;
-  --sage-accent: #DCEBE4;          /* Warm sage accent */
+  --sage-accent: #DCEBE4;
+  /* Warm sage accent */
 
   /* Functional Status Colors (accessible on light backgrounds) */
-  --accent-green: #15803D;         /* Darker green for high contrast */
+  --accent-green: #15803D;
+  /* Darker green for high contrast */
   --accent-green-bg: #DCFCE7;
-  --accent-warning: #B45309;       /* Amber/warning with high contrast */
+  --accent-warning: #B45309;
+  /* Amber/warning with high contrast */
   --accent-warning-bg: #FEF3C7;
-  --accent-critical: #B91C1C;      /* Red with high contrast */
+  --accent-critical: #B91C1C;
+  /* Red with high contrast */
   --accent-critical-bg: #FEE2E2;
   --accent-orange: #C2410C;
   --accent-orange-bg: #FFEDD5;
@@ -30,10 +46,14 @@
   --accent-purple-bg: #F3E8FF;
 
   /* Typography — Dark Charcoal & Deep Navy for Maximum Readability */
-  --text-primary: #202C35;         /* Deep charcoal / navy main text */
-  --text-secondary: #576571;       /* Readable slate secondary text */
-  --text-muted: #82929E;           /* Muted label text */
-  --text-heading: #172129;         /* High-contrast heading text */
+  --text-primary: #202C35;
+  /* Deep charcoal / navy main text */
+  --text-secondary: #576571;
+  /* Readable slate secondary text */
+  --text-muted: #82929E;
+  /* Muted label text */
+  --text-heading: #172129;
+  /* High-contrast heading text */
 
   /* Typography Fonts */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -71,7 +91,9 @@ body {
   overflow-x: hidden;
 }
 
-code, pre, .font-mono {
+code,
+pre,
+.font-mono {
   font-family: var(--font-mono);
 }
 
@@ -80,13 +102,16 @@ code, pre, .font-mono {
   width: 7px;
   height: 7px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
@@ -283,13 +308,16 @@ code, pre, .font-mono {
   .grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .grid-3 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .grid-2, .grid-4 {
+
+  .grid-2,
+  .grid-4 {
     grid-template-columns: 1fr;
   }
 }
@@ -309,7 +337,9 @@ code, pre, .font-mono {
   letter-spacing: 0.02em;
 }
 
-.form-input, .form-textarea, .form-select {
+.form-input,
+.form-textarea,
+.form-select {
   background-color: #FFFFFF;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -322,13 +352,16 @@ code, pre, .font-mono {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-input:focus, .form-textarea:focus, .form-select:focus {
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   outline: none;
   border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(57, 127, 120, 0.15);
 }
 
-.form-input::placeholder, .form-textarea::placeholder {
+.form-input::placeholder,
+.form-textarea::placeholder {
   color: var(--text-muted);
 }
 
@@ -350,8 +383,13 @@ code, pre, .font-mono {
 
 /* Shimmer Loading Animation for Light Theme */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton {
