@@ -216,3 +216,55 @@ def test_message_probability_bands_and_unable_to_assess():
     assert res_invalid["risk_level"] == "UNABLE_TO_ASSESS"
     assert res_invalid["is_assessed"] is False
 
+
+def test_elevated_probability_with_no_heuristic_triggers():
+    from backend.app.services.report_generator import generate_plain_text_report
+
+    # Simulate an assessment with 65.3% scam probability (MEDIUM RISK) and zero heuristic triggers
+    data_65 = {
+        "risk_score": 65.3,
+        "risk_level": "MEDIUM",
+        "heuristic_score": 0.0,
+        "verdict": "MEDIUM RISK ASSESSMENT — 65.3% SCAM PROBABILITY",
+        "detected_signals": [],
+        "warning_signals": [],
+        "model_contributing_features": [],
+        "explanation": (
+            "The model evaluated a 65.3% scam probability (Medium Risk). "
+            "The model estimates elevated scam risk from the message’s overall text patterns, but no individual warning trigger was identified. "
+            "Separately, no explicit heuristic warning triggers were matched (Heuristic Indicator Score: 0/100). "
+            "Note: A 0/100 heuristic score does not cancel or disprove the model's statistical assessment; "
+            "the heuristic scan checks for predefined trigger phrases, whereas the model evaluates broader linguistic patterns."
+        ),
+        "summary": "Medium Risk: Evaluated at 65.3% scam probability by calibrated model.",
+        "safe_next_steps": [
+            "Exercise caution: The model identified elevated scam risk resembling known fraudulent lures.",
+            "Do not click unverified links, forward codes, or transfer funds without independent verification.",
+            "Verify the claim independently: Contact the supposed organization directly using an official number from their official website."
+        ],
+        "ml_probability": 65.3,
+        "ml_prediction": "SCAM_OR_FRAUD",
+        "model_version": "v1.1.0",
+        "model_type": "TF-IDF + Calibrated Logistic Regression",
+    }
+
+    report = generate_plain_text_report("message", data_65)
+
+    # 1. Matches model probability and risk band
+    assert "MEDIUM RISK (65.3% scam probability)" in report
+    assert "Verdict Summary  : MEDIUM RISK ASSESSMENT — 65.3% SCAM PROBABILITY" in report
+
+    # 2. Heuristic score is separate metric (0.0/100.0)
+    assert "Heuristic Score  : 0.0 / 100.0" in report
+    assert "Matched Triggers : None (No individual rule-based warning triggers identified)." in report
+
+    # 3. Explains overall text patterns without inventing reasons
+    assert "The model estimates elevated scam risk from the message's" in report or "overall text patterns" in report
+
+    # 4. Clarifies that 0/100 heuristic score does not cancel model prediction
+    assert "does not cancel or disprove" in report
+
+    # 5. Next steps match Medium Risk band
+    assert "Exercise caution" in report
+
+

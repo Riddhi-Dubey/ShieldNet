@@ -31,6 +31,7 @@ class MessageAnalysisResponse(BaseModel):
     redacted_message_preview: str
     ml_prediction: Optional[str] = Field(None, description="SCAM_OR_FRAUD, BENIGN, or UNABLE_TO_ASSESS")
     ml_probability: Optional[float] = Field(None, description="Calibrated ML probability score (0-100)")
+    model_contributing_features: List[Dict[str, Any]] = Field(default_factory=list, description="Top positive text features contributing to model prediction")
     model_version: Optional[str] = Field(None, description="Trained ML model version")
     model_type: Optional[str] = Field(None, description="ML architecture used")
     assessment_notice: str = Field(

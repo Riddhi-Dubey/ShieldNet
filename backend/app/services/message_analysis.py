@@ -33,6 +33,44 @@ def get_message_ml_artifacts():
             _vectorizer = None
     return _model, _vectorizer, _metadata
 
+
+def extract_model_features(model, vectorizer, text: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    """
+    Extracts the genuine strongest positive features (tokens/n-grams) from the calibrated
+    Logistic Regression model that contributed to the scam probability prediction.
+    Never fabricates attributions; returns [] if no positive coefficients match.
+    """
+    if model is None or vectorizer is None:
+        return []
+
+    try:
+        import numpy as np
+        if hasattr(model, "calibrated_classifiers_"):
+            coefs = np.mean([cc.estimator.coef_[0] for cc in model.calibrated_classifiers_], axis=0)
+        elif hasattr(model, "coef_"):
+            coefs = model.coef_[0]
+        else:
+            return []
+
+        feature_names = vectorizer.get_feature_names_out()
+        vec = vectorizer.transform([text]).toarray()[0]
+        contributions = vec * coefs
+
+        positive_indices = [i for i in range(len(contributions)) if contributions[i] > 0.001]
+        if not positive_indices:
+            return []
+
+        sorted_indices = sorted(positive_indices, key=lambda i: contributions[i], reverse=True)[:top_k]
+        return [
+            {
+                "feature": str(feature_names[i]),
+                "weight": round(float(contributions[i]), 4)
+            }
+            for i in sorted_indices
+        ]
+    except Exception:
+        return []
+
 # Categorized threat pattern detectors
 SIGNAL_PATTERNS = {
     "URGENCY": {
@@ -236,6 +274,9 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
     risk_level = risk_assessment["risk_level"]
     display_label = risk_assessment["display_label"]
 
+    # Extract genuine contributing features from model (if model is available)
+    model_features = extract_model_features(model, vectorizer, message, top_k=5) if (model is not None and vectorizer is not None) else []
+
     if ml_prob is None:
         # Handle missing or invalid model probabilities with an "Unable to assess" state
         risk_score = None
@@ -254,45 +295,88 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         verdict = f"{risk_level} RISK ASSESSMENT — {ml_prob:.1f}% SCAM PROBABILITY"
         summary = f"{display_label}: Evaluated at {ml_prob:.1f}% scam probability by calibrated model."
 
-        if risk_level == "HIGH":
-            explanation = (
-                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as High Risk. "
-            )
-        elif risk_level == "MEDIUM":
-            explanation = (
-                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as Medium Risk. "
-            )
-        else:
-            explanation = (
-                f"The statistical model evaluated a {ml_prob:.1f}% scam probability, classifying this message as Low Risk. "
-            )
+        if risk_level in ["MEDIUM", "HIGH"]:
+            explanation_parts = [
+                f"The model evaluated a {ml_prob:.1f}% scam probability ({display_label})."
+            ]
 
-        if detected_signals:
-            sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
-            explanation += (
-                f"Detected {len(detected_signals)} heuristic behavioral signal(s): {', '.join(sig_names)}. "
-                "Always independently verify sender identity through official channels."
-            )
-        else:
-            explanation += (
-                "Automated scan did not match overt heuristic deception signatures. "
-                "Note: A low probability or lack of matched triggers does not guarantee that an unknown message is authentic."
-            )
+            if model_features:
+                feat_tokens = [f'"{f["feature"]}"' for f in model_features]
+                explanation_parts.append(
+                    f"Strongest model text features contributing to this prediction: {', '.join(feat_tokens)}."
+                )
+            else:
+                explanation_parts.append(
+                    "The model estimates elevated scam risk from the message’s overall text patterns, but no individual warning trigger was identified."
+                )
 
-    # Safe next steps tailored to findings
-    safe_steps: List[str] = [
-        "Never disclose OTPs, UPI PINs, or net banking passwords under any circumstances.",
-        "Remember: Receiving money via UPI or QR code NEVER requires entering your UPI PIN.",
-        "Do not click on unverified SMS links or install remote control apps (AnyDesk, TeamViewer, RustDesk).",
-        "Verify suspicious communications directly through official banking apps or verified customer care lines."
-    ]
+            if not detected_signals:
+                explanation_parts.append(
+                    "Separately, no explicit heuristic warning triggers were matched (Heuristic Indicator Score: 0/100). "
+                    "Note: A 0/100 heuristic score does not cancel or disprove the model's statistical assessment; "
+                    "the heuristic scan checks for predefined trigger phrases, whereas the model evaluates broader linguistic patterns."
+                )
+            else:
+                sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
+                explanation_parts.append(
+                    f"Separately, {len(detected_signals)} rule-based warning trigger(s) were flagged: {', '.join(sig_names)} "
+                    f"(Heuristic Indicator Score: {heuristic_score}/100)."
+                )
 
+            explanation = " ".join(explanation_parts)
+
+        else: # LOW RISK (< 30%)
+            explanation_parts = [
+                f"The statistical model evaluated a {ml_prob:.1f}% scam probability ({display_label})."
+            ]
+            if not detected_signals:
+                explanation_parts.append(
+                    "No rule-based warning triggers were identified (Heuristic Indicator Score: 0/100). "
+                    "Note: A low probability or absence of matched triggers indicates low statistical risk but does not guarantee absolute safety."
+                )
+            else:
+                sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
+                explanation_parts.append(
+                    f"Heuristic pattern scan noted isolated signal(s): {', '.join(sig_names)} "
+                    f"(Heuristic Indicator Score: {heuristic_score}/100), but overall linguistic composition remains in the low risk band."
+                )
+            explanation = " ".join(explanation_parts)
+
+    # Safe next steps tailored strictly to the displayed risk band
+    if risk_level == "HIGH":
+        safe_steps: List[str] = [
+            "CRITICAL: Do not click any links, open attachments, or call numbers listed in the message.",
+            "Never disclose OTPs, banking passwords, UPI PINs, or identity documents (Aadhaar/PAN).",
+            "Verify sender identity independently through official customer support channels or official apps.",
+            "Report potential cyber fraud immediately to the National Cyber Crime Helpline at 1930 or https://cybercrime.gov.in.",
+            "Block and report the sender on your messaging or mobile carrier platform."
+        ]
+    elif risk_level == "MEDIUM":
+        safe_steps: List[str] = [
+            "Exercise caution: The model identified elevated scam risk resembling known fraudulent lures.",
+            "Do not click unverified links, forward codes, or transfer funds without independent verification.",
+            "Verify the claim independently: Contact the supposed organization directly using an official number from their official website.",
+            "Remember that genuine organizations will never pressure you to make immediate payments or share sensitive security codes.",
+            "If suspicious, report the sender or forward the message to 1909 (National DND/Spam registry)."
+        ]
+    elif risk_level == "LOW":
+        safe_steps: List[str] = [
+            "No overt scam indicators or high statistical risk detected in this message.",
+            "Always exercise standard caution: A low probability assessment does not guarantee absolute authenticity.",
+            "Never disclose OTPs, passwords, or UPI PINs even if a communication appears familiar."
+        ]
+    else: # UNABLE_TO_ASSESS
+        safe_steps: List[str] = [
+            "Treat unsolicited communications with heightened caution when automated probability cannot be evaluated.",
+            "Verify the sender independently through official customer care channels.",
+            "Never disclose passwords, OTPs, or financial information to unknown parties."
+        ]
+
+    # Specific contextual triggers
     if any(s.signal_name in ["OTP_REQUEST", "PIN_OR_PASSWORD"] for s in detected_signals):
         safe_steps.insert(0, "CRITICAL: Do NOT send or disclose any one-time code or PIN.")
     if any(s.signal_name in ["IMPERSONATION", "KYC_HARVESTING"] for s in detected_signals):
         safe_steps.insert(0, "IMPORTANT: Banks NEVER suspend accounts via SMS links demanding online KYC updates.")
-    if risk_score is not None and risk_score >= 60.0:
-        safe_steps.append("Report financial cyber fraud immediately to the National Cyber Crime Helpline at 1930 or https://cybercrime.gov.in.")
 
     limitations = (
         "This evaluation is an automated risk assessment based on calibrated statistical machine learning. "
@@ -327,6 +411,7 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         "verdict": verdict,
         "detected_signals": detected_signals,
         "warning_signals": warning_signals,
+        "model_contributing_features": model_features,
         "explanation": explanation,
         "summary": summary,
         "safe_next_steps": safe_steps,
@@ -346,6 +431,7 @@ def analyze_scam_message(message: str, sender: str = None, consent_for_llm: bool
         heuristic_score=heuristic_score,
         detected_signals=detected_signals,
         warning_signals=warning_signals,
+        model_contributing_features=model_features,
         verdict=verdict,
         summary=summary,
         explanation=explanation,

@@ -427,6 +427,60 @@ export const MessageChecker = () => {
               </span>
             </div>
 
+            {/* Assessment Explanation & Model Evidence Card */}
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  <ShieldCheck size={16} style={{ color: riskAssessment.colorVar }} />
+                  <span>Statistical Model Risk Assessment Explanation</span>
+                </div>
+                <span className={`badge ${riskAssessment.badgeClass}`} style={{ fontSize: '11px' }}>
+                  {riskAssessment.label} ({result.ml_probability !== undefined && result.ml_probability !== null ? `${Number(result.ml_probability).toFixed(1)}%` : 'Unavailable'})
+                </span>
+              </div>
+
+              <p style={{ fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.55, margin: 0 }}>
+                {result.explanation || result.summary}
+              </p>
+
+              {/* Contributing Model Features if available */}
+              {result.model_contributing_features && result.model_contributing_features.length > 0 && (
+                <div style={{ marginTop: '4px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                    Strongest Contributing Model Text Features:
+                  </span>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {result.model_contributing_features.map((feat, fIdx) => (
+                      <span
+                        key={fIdx}
+                        style={{
+                          fontSize: '11.5px',
+                          fontFamily: 'var(--font-mono)',
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid var(--border-color)',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        "{feat.feature}"
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Optional Plain-Language AI Explainer */}
             {result.llm_explanation && (
               <div
@@ -450,56 +504,98 @@ export const MessageChecker = () => {
               </div>
             )}
 
-            {/* Warning Signals List */}
+            {/* Rule-Based Warning Triggers (Heuristic Layer) */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <AlertTriangle size={16} style={{ color: 'var(--accent-warning)' }} />
-                  Detected Behavioral Threat Signals
+                  Rule-Based Warning Triggers (Heuristic Layer)
                 </h3>
-                {result.heuristic_score !== undefined && result.heuristic_score !== null && (
-                  <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
-                    Heuristic Indicator Score: <strong style={{ fontFamily: 'var(--font-mono)' }}>{result.heuristic_score}/100</strong>
-                    <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>
-                      (Rule match score from {result.detected_signals?.length || result.warning_signals?.length || 0} trigger(s); distinct from statistical model probability)
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    Heuristic Score: {result.heuristic_score ?? 0}/100
                   </span>
-                )}
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    (Separate rule match metric)
+                  </span>
+                </div>
               </div>
 
-            {result.warning_signals && result.warning_signals.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {result.warning_signals.map((sig, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: '12px 16px',
-                      backgroundColor: 'var(--bg-secondary)',
-                      border: '1px solid var(--border-color)',
-                      borderLeft: '4px solid var(--accent-warning)',
-                      borderRadius: 'var(--radius-sm)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {sig.signal || sig.title || `Signal #${idx + 1}`}
-                      </span>
-                      {sig.severity && (
-                        <span className={`badge badge-${sig.severity.toLowerCase()}`}>
-                          {sig.severity}
+              {result.warning_signals && result.warning_signals.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {result.warning_signals.map((sig, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px 16px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderLeft: '4px solid var(--accent-warning)',
+                        borderRadius: 'var(--radius-sm)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                          {sig.signal || sig.title || `Signal #${idx + 1}`}
                         </span>
-                      )}
+                        {sig.severity && (
+                          <span className={`badge badge-${sig.severity.toLowerCase()}`}>
+                            {sig.severity}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                        {sig.explanation || sig.description}
+                      </p>
                     </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      {sig.explanation || sig.description}
-                    </p>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>
+                    No individual rule-based warning triggers were identified.
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No explicit warning triggers flagged in this message.</p>
-            )}
-          </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                    This message did not match predefined trigger patterns (such as specific banking keywords, hardcoded urgency phrases, or credential-harvesting patterns).
+                  </p>
+                  {riskAssessment.level !== 'LOW' && (
+                    <div
+                      style={{
+                        fontSize: '11.5px',
+                        color: riskAssessment.colorVar,
+                        backgroundColor: riskAssessment.bgVar,
+                        border: `1px solid ${riskAssessment.borderColor}`,
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        marginTop: '4px',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <strong>Important Notice on Metric Independence:</strong> A 0/100 heuristic indicator score does not cancel or disprove the model’s <strong>{result.ml_probability !== undefined && result.ml_probability !== null ? `${Number(result.ml_probability).toFixed(1)}% scam probability` : ''} ({riskAssessment.label})</strong>. Rule-based triggers search for exact keyword templates, whereas the statistical machine learning model evaluates broader linguistic patterns.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
           {/* Safe Next Steps */}
           <div>

@@ -60,25 +60,50 @@ def generate_plain_text_report(
     detected_signals = data.get("detected_signals") or []
     heuristic_findings = data.get("heuristic_findings") or data.get("warning_signs") or []
 
-    if analysis_type.lower() == "message" and detected_signals:
-        for idx, sig in enumerate(detected_signals, 1):
-            if hasattr(sig, "category"):
-                cat = sig.category
-                name = sig.signal_name
-                desc = sig.description
-                weight = getattr(sig, "weight", 0.0)
-                snippet = getattr(sig, "evidence_snippet", None)
-            else:
-                cat = sig.get("category", "Pattern")
-                name = sig.get("signal_name") or sig.get("signal", "Signal")
-                desc = sig.get("description") or sig.get("explanation", "")
-                weight = sig.get("weight", 0.0)
-                snippet = sig.get("evidence_snippet")
+    if analysis_type.lower() == "message":
+        # Distinct Section 1: Statistical Model Attribution
+        lines.append("1. STATISTICAL MODEL RISK ATTRIBUTION:")
+        ml_prob = data.get("ml_probability")
+        risk_level = data.get("risk_level", "UNKNOWN")
+        if ml_prob is not None:
+            lines.append(f"   Model Scam Prob  : {float(ml_prob):.1f}% ({risk_level} Risk band)")
+        model_feats = data.get("model_contributing_features") or []
+        if model_feats:
+            feats_str = ", ".join([f'"{f["feature"]}"' for f in model_feats])
+            lines.append(f"   Key Features     : {feats_str}")
+        else:
+            lines.append("   Model Features   : The model estimates elevated scam risk from the message's")
+            lines.append("                      overall text patterns, but no individual warning trigger was identified.")
+        lines.append("")
 
-            lines.append(f"  {idx}. [{cat}] {name} (Weight: {weight:.1f})")
-            lines.append(f"     Description : {desc}")
-            if snippet:
-                lines.append(f"     Context     : \"{snippet}\"")
+        # Distinct Section 2: Rule-Based Warning Triggers
+        lines.append("2. RULE-BASED WARNING TRIGGERS (HEURISTIC LAYER):")
+        heuristic_score = data.get("heuristic_score", 0.0)
+        lines.append(f"   Heuristic Score  : {float(heuristic_score):.1f} / 100.0 (Separate metric: rule-based pattern matching)")
+        if detected_signals:
+            for idx, sig in enumerate(detected_signals, 1):
+                if hasattr(sig, "category"):
+                    cat = sig.category
+                    name = sig.signal_name
+                    desc = sig.description
+                    weight = getattr(sig, "weight", 0.0)
+                    snippet = getattr(sig, "evidence_snippet", None)
+                else:
+                    cat = sig.get("category", "Pattern")
+                    name = sig.get("signal_name") or sig.get("signal", "Signal")
+                    desc = sig.get("description") or sig.get("explanation", "")
+                    weight = sig.get("weight", 0.0)
+                    snippet = sig.get("evidence_snippet")
+
+                lines.append(f"   {idx}. [{cat}] {name} (Weight: {weight:.1f})")
+                lines.append(f"      Description   : {desc}")
+                if snippet:
+                    lines.append(f"      Context       : \"{snippet}\"")
+        else:
+            lines.append("   Matched Triggers : None (No individual rule-based warning triggers identified).")
+            lines.append("   Note             : A 0/100 heuristic score does not cancel or disprove the")
+            lines.append("                      model's statistical assessment. Heuristics check predefined")
+            lines.append("                      trigger phrases, whereas the model evaluates broader patterns.")
     elif heuristic_findings:
         for idx, finding in enumerate(heuristic_findings, 1):
             lines.append(f"  {idx}. {finding}")
