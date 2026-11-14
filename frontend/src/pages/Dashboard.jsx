@@ -61,16 +61,16 @@ export const Dashboard = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <span className="pulse-dot pulse-dot-green" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--primary-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Live Intelligence Stream
+            <span className="pulse-dot pulse-dot-purple" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Demonstration & Research Sandbox Stream
             </span>
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>
             ScamTrace Intelligence Dashboard
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Real-time telemetry and syndicated threat indicators across mapped cyber entities.
+            Demonstrative network mapping, syndicate cluster discovery, and simulated threat indicators.
           </p>
         </div>
 
@@ -92,6 +92,24 @@ export const Dashboard = () => {
             <ShieldAlert size={16} />
             Log Threat Incident
           </button>
+        </div>
+      </div>
+
+      {/* Demonstrative Intelligence & Provenance Disclosure Banner */}
+      <div
+        style={{
+          padding: '14px 18px',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'rgba(167, 139, 250, 0.08)',
+          border: '1px solid rgba(167, 139, 250, 0.28)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px',
+        }}
+      >
+        <Info size={18} style={{ color: 'var(--accent-purple)', marginTop: '2px', flexShrink: 0 }} />
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Demonstrative Data Notice:</strong> The threat indicators, network clusters, and entities displayed below (tagged <span className="badge badge-synthetic" style={{ fontSize: '10px', padding: '1px 6px' }}>SYNTHETIC_DEMO</span> or <span className="badge badge-synthetic" style={{ fontSize: '10px', padding: '1px 6px' }}>PAYSIM_SIMULATED</span>) are synthesized honeypots and academic research benchmarks created to demonstrate multi-hop graph mapping capabilities. <strong>Counts and charts reflect demonstration benchmarks and must not be interpreted as live police surveillance or confirmed real-world suspects.</strong>
         </div>
       </div>
 
@@ -126,36 +144,36 @@ export const Dashboard = () => {
           {/* Top 4 KPI Stat Cards */}
           <div className="grid-4">
             <StatCard
-              title="Total Entities"
+              title="Demonstration Entities"
               value={stats.totalEntities ?? stats.total_entities}
-              subtitle="Registered nodes in knowledge graph"
+              subtitle="Simulated benchmark & demo nodes"
               icon={Users}
               color="var(--primary-accent)"
               onClick={() => navigate('/trace/search')}
             />
 
             <StatCard
-              title="Suspicious Entities"
+              title="High Risk Nodes"
               value={stats.suspiciousEntities ?? stats.suspicious_entities}
-              subtitle="High/Critical risk threshold"
+              subtitle="Simulated high/critical severity"
               icon={ShieldAlert}
               color="var(--accent-critical)"
               onClick={() => navigate('/trace/analytics')}
             />
 
             <StatCard
-              title="Total Relationships"
+              title="Graph Relationships"
               value={stats.totalRelationships ?? stats.total_relationships}
-              subtitle="Cross-entity transaction/contact links"
+              subtitle="Simulated transfer & contact links"
               icon={Share2}
               color="var(--accent-purple)"
               onClick={() => navigate('/trace/network')}
             />
 
             <StatCard
-              title="Connected Clusters"
+              title="Syndicate Clusters"
               value={stats.connectedClusters ?? stats.connected_clusters}
-              subtitle="Syndicated fraud operation rings"
+              subtitle="Demonstrative fraud rings"
               icon={Layers}
               color="var(--accent-orange)"
               onClick={() => navigate('/trace/network')}

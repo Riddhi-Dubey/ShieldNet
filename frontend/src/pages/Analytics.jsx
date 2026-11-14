@@ -8,7 +8,8 @@ import {
   ShieldAlert, 
   RefreshCw, 
   Share2, 
-  ExternalLink 
+  ExternalLink,
+  Info
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -77,6 +78,24 @@ export const Analytics = () => {
         <button onClick={fetchAnalytics} className="btn btn-secondary" style={{ fontSize: '12px' }}>
           <RefreshCw size={14} /> Refresh Analytics
         </button>
+      </div>
+
+      {/* Demonstrative & Benchmark Intelligence Notice */}
+      <div
+        style={{
+          padding: '14px 18px',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'rgba(167, 139, 250, 0.08)',
+          border: '1px solid rgba(167, 139, 250, 0.28)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px',
+        }}
+      >
+        <Info size={18} style={{ color: 'var(--accent-purple)', marginTop: '2px', flexShrink: 0 }} />
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>Demonstrative Benchmark Notice:</strong> Analytical metrics, degree centralities, and flow velocities represent simulated transaction topologies (PaySim benchmark) and synthetic investigation scenarios. They showcase systemic mapping and cluster detection algorithms and do not represent verified criminal wiretaps or live police intelligence.
+        </div>
       </div>
 
       {/* Error State */}

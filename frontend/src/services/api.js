@@ -8,12 +8,40 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 45000, // 45 seconds to accommodate cloud free-tier cold starts
 });
+
+// Automatic retry interceptor for handling Render free-tier cold start wakeups
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (!config) return Promise.reject(error);
+
+    const isColdStart =
+      error.code === 'ECONNABORTED' ||
+      !error.response ||
+      [502, 503, 504].includes(error.response?.status);
+
+    const currentRetry = config.__retryCount || 0;
+    if (isColdStart && currentRetry < 2) {
+      config.__retryCount = currentRetry + 1;
+      // Wait 2.5s before retry to allow cloud instance to complete boot
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      return apiClient(config);
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // Helper to format detailed backend error messages
 export const extractErrorMessage = (error) => {
   if (!error) return 'An unknown error occurred.';
+
+  if (error.code === 'ECONNABORTED' || (!error.response && error.message?.includes('timeout'))) {
+    return 'Cloud server is warming up from standby (Render free-tier cold start). Please wait 20-30 seconds and try again.';
+  }
 
   if (error.response) {
     const { status, data } = error.response;
@@ -31,8 +59,8 @@ export const extractErrorMessage = (error) => {
       return data.message;
     }
 
-    if (status === 503) {
-      return 'AI Model or Threat Intelligence Service is currently offline or warming up.';
+    if (status === 502 || status === 503 || status === 504) {
+      return 'Cloud service is currently waking up or completing deployment. Please wait 15 seconds and refresh.';
     }
 
     if (status === 404) {
@@ -43,7 +71,7 @@ export const extractErrorMessage = (error) => {
   }
 
   if (error.request) {
-    return 'Unable to connect to backend server. Ensure FastAPI is running on port 8000 or check VITE_API_URL.';
+    return 'Connecting to backend service... If this is the initial load, the free-tier server is spinning up from cold-sleep (approx 30s).';
   }
 
   return error.message || 'Network request failed.';

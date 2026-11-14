@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShieldCheck, Lock, EyeOff, Server, FileCheck2 } from 'lucide-react';
+import { X, ShieldCheck, Lock, EyeOff, Server, FileCheck2, Database, Code, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const PrivacyModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -25,7 +25,7 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
       <div
         className="cyber-card"
         style={{
-          maxWidth: '640px',
+          maxWidth: '720px',
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
@@ -68,43 +68,76 @@ export const PrivacyModal = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Privacy & Consent Architecture
+              Privacy, Verification & Consent Architecture
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Zero unsolicited data harvesting. Cryptographic hashing of indicators.
+              Detailed technical transparency on zero-storage claims, in-memory processing, and consent boundaries.
             </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          <div style={{ padding: '14px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          {/* Section 1: In-Memory / Zero Storage */}
+          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-green)', fontWeight: 700, marginBottom: '6px' }}>
               <EyeOff size={16} />
-              <span>1. Zero Auto-Sharing Policy</span>
+              <span>1. Zero-Storage Scanning: How It Works & How to Verify</span>
             </div>
-            <p>
-              When you paste messages into the Message Checker or scan URLs in the URL Checker, your text is analyzed strictly in-memory by our detection pipeline. 
-              <strong> It is never automatically forwarded, stored, or exposed to the public ScamTrace investigation registry.</strong>
+            <p style={{ marginBottom: '8px' }}>
+              When you paste messages into the Message Checker or inspect domains in the URL Checker, your text is analyzed strictly in volatile application memory (RAM).
             </p>
+            <ul style={{ paddingLeft: '20px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <li><strong>Zero Database Writes:</strong> The scanning endpoint (<code style={{ color: 'var(--primary-accent)' }}>POST /api/analyse/message</code>) does not accept or open any database session. 0 bytes are persisted to SQLite or disk logs.</li>
+              <li><strong>Zero Third-Party AI Leakage:</strong> Analysis runs purely on deterministic local heuristic pattern matchers. No user text is ever routed to external LLM APIs (OpenAI, Anthropic, Google).</li>
+              <li><strong>Verification in Source Code:</strong> You can inspect <code style={{ color: 'var(--primary-accent)' }}>backend/app/api/scamshield.py</code> to verify that the analysis function operates with no database commit calls.</li>
+            </ul>
           </div>
 
-          <div style={{ padding: '14px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          {/* Section 2: Exact Data Scope When Consent Is Granted */}
+          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-accent)', fontWeight: 700, marginBottom: '6px' }}>
-              <Server size={16} />
-              <span>2. Explicit Consent Gate</span>
+              <Database size={16} />
+              <span>2. Incident Reporting: What Is Sent vs What Is Never Sent</span>
             </div>
-            <p>
-              Only when an incident reporter explicitly reviews the Report Preview and clicks the separate, un-checked consent checkbox will technical threat indicators (e.g. suspect phone numbers, phishing domains) be indexed into the investigative graph.
+            <p style={{ marginBottom: '8px' }}>
+              Only when you navigate to <em>Report-a-Scam</em> and explicitly toggle the consent checkbox is technical intelligence shared with ScamTrace:
             </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginTop: '8px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#0D1527', borderRadius: '6px', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-green)', fontWeight: 700, fontSize: '11px', marginBottom: '4px' }}>
+                  <CheckCircle2 size={14} /> WHAT IS TRANSFERRED
+                </div>
+                <ul style={{ paddingLeft: '16px', fontSize: '11px', margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <li>Target phone, phishing URL, or UPI VPA</li>
+                  <li>Category tag (e.g. Phishing, Job Task)</li>
+                  <li>Timestamp of incident</li>
+                  <li>Sanitized description (OTPs/passwords stripped)</li>
+                </ul>
+              </div>
+
+              <div style={{ padding: '10px', backgroundColor: '#0D1527', borderRadius: '6px', border: '1px solid rgba(248, 113, 113, 0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-critical)', fontWeight: 700, fontSize: '11px', marginBottom: '4px' }}>
+                  <AlertOctagon size={14} /> WHAT IS PERMANENTLY STRIPPED
+                </div>
+                <ul style={{ paddingLeft: '16px', fontSize: '11px', margin: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <li>Your IP address and device fingerprint</li>
+                  <li>All 4-6 digit verification OTPs & PINs</li>
+                  <li>Net banking passwords & card numbers</li>
+                  <li>Victim identity or account balance</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          <div style={{ padding: '14px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          {/* Section 3: Server-Side Consent Enforcement */}
+          <div style={{ padding: '16px', backgroundColor: '#111827', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-purple)', fontWeight: 700, marginBottom: '6px' }}>
-              <FileCheck2 size={16} />
-              <span>3. Synthetic vs Real Intel Demarcation</span>
+              <Server size={16} />
+              <span>3. Server-Side Consent Gating</span>
             </div>
             <p>
-              To safeguard privacy while empowering defensive training, all test clusters and algorithmic mock entities are clearly tagged and styled as <em>Synthetic</em>, preventing false public incrimination.
+              Consent is enforced on the backend, not solely by a browser checkbox. If a submission arrives without an active server-side consent record, the threat indicators are <strong>permanently barred from the public ScamTrace graph</strong> and logged solely as an unshared citizen incident for user records.
             </p>
           </div>
         </div>

@@ -18,24 +18,41 @@ export const Navbar = ({ onOpenEmergency, onOpenPrivacy }) => {
   const location = useLocation();
   const [backendStatus, setBackendStatus] = useState('checking'); // 'connected' | 'offline' | 'checking'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
+    let timer = null;
+
     const checkStatus = async () => {
       try {
         await getHealth();
-        if (isMounted) setBackendStatus('connected');
+        if (isMounted) {
+          setBackendStatus('connected');
+          // Once connected, check less frequently (every 30s)
+          timer = setTimeout(checkStatus, 30000);
+        }
       } catch (err) {
-        if (isMounted) setBackendStatus('offline');
+        if (isMounted) {
+          setBackendStatus((prev) => (prev === 'connected' ? 'offline' : 'checking'));
+          // When warming up or offline, poll every 4s to catch server as soon as it boots
+          timer = setTimeout(checkStatus, 4000);
+        }
       }
     };
+
     checkStatus();
-    const interval = setInterval(checkStatus, 30000);
+
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [retryAttempt]);
+
+  const handleManualRetry = () => {
+    setBackendStatus('checking');
+    setRetryAttempt((prev) => prev + 1);
+  };
 
   const isScamShield = location.pathname.startsWith('/shield');
   const isScamTrace = location.pathname.startsWith('/trace');
@@ -140,17 +157,24 @@ export const Navbar = ({ onOpenEmergency, onOpenPrivacy }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         {/* Backend Status indicator */}
         <div
+          onClick={backendStatus !== 'connected' ? handleManualRetry : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             fontSize: '12px',
-            padding: '5px 10px',
+            padding: '5px 12px',
             borderRadius: '20px',
             backgroundColor: '#111827',
-            border: '1px solid var(--border-color)',
+            border: backendStatus === 'connected' ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid rgba(251, 146, 60, 0.4)',
+            cursor: backendStatus !== 'connected' ? 'pointer' : 'default',
+            transition: 'all 0.2s',
           }}
-          title={backendStatus === 'connected' ? 'FastAPI Backend Online' : 'FastAPI Backend Standby (Port 8000)'}
+          title={
+            backendStatus === 'connected'
+              ? 'FastAPI Cloud Backend Online (Health Verified)'
+              : 'Cloud Backend Warming Up from Standby (Render free-tier cold-start takes ~25s on first visit). Click to retry ping.'
+          }
         >
           <span
             style={{
@@ -160,17 +184,16 @@ export const Navbar = ({ onOpenEmergency, onOpenPrivacy }) => {
               backgroundColor:
                 backendStatus === 'connected'
                   ? 'var(--accent-green)'
-                  : backendStatus === 'offline'
-                  ? 'var(--accent-warning)'
-                  : 'var(--text-muted)',
+                  : 'var(--accent-warning)',
               boxShadow:
                 backendStatus === 'connected'
                   ? '0 0 8px var(--accent-green)'
-                  : 'none',
+                  : '0 0 6px rgba(251, 146, 60, 0.6)',
+              animation: backendStatus !== 'connected' ? 'pulse 1.5s infinite' : 'none',
             }}
           />
-          <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-            API: {backendStatus === 'connected' ? 'ONLINE' : 'STANDBY'}
+          <span style={{ color: backendStatus === 'connected' ? 'var(--text-primary)' : 'var(--accent-warning)', fontSize: '11px', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+            {backendStatus === 'connected' ? 'API: ONLINE' : 'API: WARMING UP...'}
           </span>
         </div>
 

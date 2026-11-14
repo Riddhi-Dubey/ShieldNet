@@ -7,31 +7,39 @@ from backend.app.security.redaction import redact_sensitive_text
 # Categorized threat pattern detectors
 SIGNAL_PATTERNS = {
     "URGENCY": {
-        "weight": 14.0,
+        "weight": 18.0,
         "category": "Psychological Coercion",
-        "description": "High-pressure urgency tactics to prevent critical reflection",
+        "description": "High-pressure urgency tactics, threats of service disconnection, or legal panic",
         "patterns": [
-            r"\b(urgent|immediately|within\s+24\s*hours?|account\s+blocked|account\s+suspended|deactivated\s+today|last\s+notice|final\s+warning|expire\s+soon|immediate\s+action)\b"
+            r"\b(urgent|immediately|within\s+\d+\s*(?:hours?|mins?|minutes?)|account\s+(?:has\s+been\s+)?(?:blocked|suspended|deactivated|closed|frozen)|deactivated\s+today|last\s+notice|final\s+warning|expire\s+soon|immediate\s+action|power\s+(?:will\s+be\s+)?disconnected|power\s+cutoff|bill\s+unpaid|permanent\s+deactivation|avoid\s+permanent\s+deactivation)\b"
+        ]
+    },
+    "KYC_HARVESTING": {
+        "weight": 28.0,
+        "category": "Credential & Identity Harvesting",
+        "description": "Deceptive solicitation of KYC verification, Aadhaar, or PAN card updates under penalty of suspension",
+        "patterns": [
+            r"\b(pending\s+kyc|kyc\s+update|complete\s+(?:your\s+)?kyc|kyc\s+(?:has\s+)?expired|pan\s+(?:card\s+)?(?:link|update)|update\s+(?:your\s+)?kyc|link\s+aadhar|sim\s+verification|sim\s+block|kyc\s+suspended|send\s+(?:your\s+)?aadhar|aadhar\s+card)\b"
         ]
     },
     "ADVANCE_PAYMENT": {
-        "weight": 22.0,
+        "weight": 24.0,
         "category": "Financial Demand",
-        "description": "Request for advance fees, registration charges, or refundable security deposits",
+        "description": "Request for upfront advance fees, registration charges, or refundable security deposits",
         "patterns": [
             r"\b(processing\s+fee|registration\s+fee|security\s+deposit|advance\s+payment|refundable\s+deposit|customs\s+clearance\s+charge|pay\s+upfront|courier\s+fee)\b"
         ]
     },
     "OTP_REQUEST": {
-        "weight": 28.0,
+        "weight": 30.0,
         "category": "Credential Extraction",
         "description": "Direct solicitation of One-Time Password (OTP) or authentication codes",
         "patterns": [
-            r"\b(share\s+(?:the\s+)?otp|send\s+(?:the\s+)?(?:otp|code)|forward\s+(?:the\s+)?code|verify\s+(?:your\s+)?otp|tell\s+me\s+the\s+otp|enter\s+otp\s+on\s+call)\b"
+            r"\b(share\s+(?:the\s+)?otp|send\s+(?:the\s+)?(?:otp|code)|forward\s+(?:the\s+)?code|verify\s+(?:your\s+)?otp|tell\s+me\s+the\s+otp|enter\s+otp\s+on\s+call|one\s*time\s*password)\b"
         ]
     },
     "PIN_OR_PASSWORD": {
-        "weight": 30.0,
+        "weight": 32.0,
         "category": "Credential Theft",
         "description": "Direct request for UPI PIN, ATM PIN, or banking passwords",
         "patterns": [
@@ -39,11 +47,11 @@ SIGNAL_PATTERNS = {
         ]
     },
     "PRIZE_OR_LOTTERY": {
-        "weight": 20.0,
+        "weight": 24.0,
         "category": "Baiting / Lottery Scam",
         "description": "Unsolicited claims of winnings, lucky draws, or massive cash rewards",
         "patterns": [
-            r"\b(won\s+lottery|congratulations\s+you\s+(?:have\s+)?won|cash\s+prize|lucky\s+draw|kbc\s+lottery|selected\s+winner|claim\s+your\s+prize|car\s+reward|jackpot)\b"
+            r"\b(won\s+lottery|congratulations\s+you\s+(?:have\s+)?won|cash\s+prize|lucky\s+draw|kbc\s+lottery|selected\s+winner|claim\s+your\s+prize|car\s+reward|jackpot|won\s+(?:₹|rs\.?))\b"
         ]
     },
     "FAKE_EMPLOYMENT": {
@@ -55,7 +63,7 @@ SIGNAL_PATTERNS = {
         ]
     },
     "SUSPICIOUS_PAYMENT": {
-        "weight": 18.0,
+        "weight": 22.0,
         "category": "Payment Misdirection",
         "description": "Suspicious payment requests via gift cards, crypto transfers, or QR codes to receive funds",
         "patterns": [
@@ -63,28 +71,37 @@ SIGNAL_PATTERNS = {
         ]
     },
     "IMPERSONATION": {
-        "weight": 20.0,
-        "category": "Authority Impersonation",
-        "description": "Impersonation of established banks, law enforcement, utility boards, or delivery services",
+        "weight": 22.0,
+        "category": "Brand / Authority Impersonation",
+        "description": "Impersonation of established banks, utility boards, tax authorities, or courier services",
         "patterns": [
-            r"\b(sbi\s+(?:bank|yono)|hdfc\s+bank|icici\s+bank|rbi|income\s+tax\s+department|customs\s+department|mumbai\s+police|cyber\s+crime\s+branch|electricity\s+officer|fedex\s+officer)\b"
+            r"\b(sbi(?:\b|\s+account|\s+yono|\s+card)|hdfc|icici|axis\s+bank|pnb\b|punjab\s+national|bank\s+of\s+baroda|kotak|canara|union\s+bank|rbi\b|reserve\s+bank|income\s*tax|mumbai\s+police|delhi\s+police|cyber\s*crime|electricity\s+(?:officer|board|dept)|fedex|dhl|india\s*post|post\s+office)\b"
+        ]
+    },
+    "FAMILY_EMERGENCY": {
+        "weight": 28.0,
+        "category": "Social Engineering / Impersonation",
+        "description": "Impersonation of family member or friend claiming emergency distress or phone loss",
+        "patterns": [
+            r"\b((?:hi|hello|hey)\s+(?:mom|dad|mama|papa|mum)|broke\s+my\s+phone|new\s+temporary\s+number|emergency\s+cab|pay\s+for\s+emergency|hospital\s+emergency)\b"
         ]
     },
     "SUSPICIOUS_CONTACT": {
-        "weight": 12.0,
+        "weight": 16.0,
         "category": "Out-of-Band Channel",
-        "description": "Channel redirection to unverified Telegram channels or WhatsApp links",
+        "description": "Redirection to unverified Telegram channels, WhatsApp numbers, or private chat handles",
         "patterns": [
-            r"\b(t\.me\/[a-zA-Z0-9_]+|wa\.me\/\d+|telegram\s+channel|join\s+whatsapp\s+group)\b"
+            r"\b(t\.me\/[a-zA-Z0-9_]+|wa\.me\/\d+|telegram\s+channel|join\s+whatsapp\s+group|whatsapp\s+number|call\s+electricity\s+officer)\b"
         ]
     },
     "SUSPICIOUS_LINKS": {
-        "weight": 16.0,
-        "category": "Obfuscated / Suspicious Link",
-        "description": "URL shorteners, raw IP links, or deceptive domain links",
+        "weight": 24.0,
+        "category": "Deceptive URL / Phishing Link",
+        "description": "Unverified web link embedded in unsolicited SMS or instant message",
         "patterns": [
-            r"\b(?:https?:\/\/)?(?:bit\.ly|tinyurl\.com|is\.gd|t\.co|cutt\.ly|rb\.gy)\/[a-zA-Z0-9_\-]+",
-            r"\bhttps?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b"
+            r"\bhttps?:\/\/[^\s]+",
+            r"\b(?:bit\.ly|tinyurl\.com|is\.gd|t\.co|cutt\.ly|rb\.gy)\/[a-zA-Z0-9_\-]+",
+            r"\b[a-zA-Z0-9_\-]+\.(?:in|xyz|top|site|click|club|link|live|buzz|work|download|cc|tk|ml|ga|cf|gq)\b"
         ]
     }
 }
@@ -93,10 +110,10 @@ SIGNAL_PATTERNS = {
 def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisResponse:
     """
     Performs explainable, heuristic rule-based risk evaluation of a suspicious message.
-    Redacts sensitive text and generates actionable safety steps and limitations.
+    Redacts sensitive text, applies compound risk multipliers, and generates actionable safety guidance.
     """
     detected_signals: List[SignalDetail] = []
-    total_score = 0.0
+    base_score = 0.0
 
     lower_text = message.lower()
 
@@ -117,9 +134,8 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
 
         if matched:
             weight = rule["weight"]
-            # Apply slight dampening if multiple signals are present to avoid linear runaway
-            contribution = round(weight * (1.0 / (1.0 + 0.05 * len(detected_signals))), 2)
-            total_score += contribution
+            contribution = round(weight, 1)
+            base_score += contribution
 
             detected_signals.append(SignalDetail(
                 category=rule["category"],
@@ -130,43 +146,65 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
                 evidence_snippet=redact_sensitive_text(evidence_snippet) if evidence_snippet else None
             ))
 
-    # Normalize score between 0 and 100
-    risk_score = min(100.0, round(total_score, 1))
+    # Compound Multiplier: Detect textbook multi-vector attacks
+    signal_keys = {s.signal_name for s in detected_signals}
+    compound_boost = 0.0
+
+    # 1. Impersonation + KYC Harvesting + Unverified Link = Textbook Phishing (e.g. SBI KYC suspension)
+    if ("IMPERSONATION" in signal_keys or "URGENCY" in signal_keys) and \
+       ("KYC_HARVESTING" in signal_keys or "SUSPICIOUS_LINKS" in signal_keys):
+        compound_boost += 30.0
+
+    # 2. Family Emergency + Money Request (UPI/Cab)
+    if "FAMILY_EMERGENCY" in signal_keys and any(
+        term in lower_text for term in ["upi", "send", "money", "pay", "₹", "rs"]
+    ):
+        compound_boost += 35.0
+
+    # 3. Urgency/Threat + Utility Disconnection + Call/Contact redirection
+    if "URGENCY" in signal_keys and ("SUSPICIOUS_CONTACT" in signal_keys or "IMPERSONATION" in signal_keys):
+        compound_boost += 25.0
+
+    # 4. Lottery / Prize + Advance Fee / Registration Fee
+    if "PRIZE_OR_LOTTERY" in signal_keys and ("ADVANCE_PAYMENT" in signal_keys or "KYC_HARVESTING" in signal_keys):
+        compound_boost += 25.0
+
+    raw_total = base_score + compound_boost
+    risk_score = min(100.0, round(raw_total, 1))
     risk_level = calculate_risk_level(risk_score)
 
     # Explanation generation
     if not detected_signals:
         explanation = (
-            "No known prominent scam signatures (urgency, OTP solicitation, fake job offers, "
-            "lottery lures, or bank impersonation) were identified in the submitted text."
+            "No explicit known scam triggers (urgency coercion, OTP solicitation, credential harvesting, "
+            "fake job offers, lottery bait, or brand impersonation) were identified in this message."
         )
     else:
         sig_names = [s.signal_name.replace("_", " ").title() for s in detected_signals]
         explanation = (
             f"Evaluated {len(detected_signals)} suspicious behavioral signal(s): {', '.join(sig_names)}. "
-            f"The combination of {detected_signals[0].category.lower()} indicators contributes significantly "
-            f"to the overall heuristic risk classification."
+            f"Compound threat correlation ({risk_score}/100) indicates significant risk of social engineering."
         )
 
     # Safe next steps tailored to findings
     safe_steps: List[str] = [
-        "Never share OTPs, UPI PINs, or banking passwords with anyone under any circumstances.",
-        "Remember: You never need to enter your UPI PIN or scan a QR code to RECEIVE money.",
-        "Do not click on unverified shortlinks or download remote access software (AnyDesk, TeamViewer).",
-        "Verify suspicious communications directly through official banking apps or verified numbers."
+        "Never disclose OTPs, UPI PINs, or net banking passwords under any circumstances.",
+        "Remember: Receiving money via UPI or QR code NEVER requires entering your UPI PIN.",
+        "Do not click on unverified SMS links or install remote control apps (AnyDesk, TeamViewer, RustDesk).",
+        "Verify suspicious communications directly through official banking apps or verified customer care lines."
     ]
 
     if any(s.signal_name in ["OTP_REQUEST", "PIN_OR_PASSWORD"] for s in detected_signals):
         safe_steps.insert(0, "CRITICAL: Do NOT send or disclose any one-time code or PIN.")
-    if any(s.signal_name in ["IMPERSONATION", "URGENCY"] for s in detected_signals):
-        safe_steps.append("If this claims to be your bank or an electricity board, contact their official branch directly.")
+    if any(s.signal_name in ["IMPERSONATION", "KYC_HARVESTING"] for s in detected_signals):
+        safe_steps.insert(0, "IMPORTANT: Banks NEVER suspend accounts via SMS links demanding online KYC updates.")
     if risk_score >= 60.0:
-        safe_steps.append("Report financial cyber fraud immediately to the National Cyber Crime Helpline at 1930 or cybercrime.gov.in.")
+        safe_steps.append("Report financial cyber fraud immediately to the National Cyber Crime Helpline at 1930 or https://cybercrime.gov.in.")
 
     limitations = (
-        "Heuristic analysis uses pattern-matching rules and explainable indicator weights. "
+        "Heuristic analysis uses explainable pattern-matching rules and compound risk correlation. "
         "It does not represent calibrated mathematical probability or definitive legal proof of fraud. "
-        "Zero detected indicators does not guarantee that a message is completely benign."
+        "Zero detected indicators does NOT guarantee that an unknown message is benign."
     )
 
     redacted_preview = redact_sensitive_text(message)
@@ -174,8 +212,8 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
     warning_signals = [
         {
             "signal": s.signal_name,
-            "title": s.signal_name,
-            "severity": "CRITICAL" if s.weight >= 30 else "HIGH" if s.weight >= 20 else "MEDIUM" if s.weight >= 10 else "LOW",
+            "title": s.signal_name.replace("_", " ").title(),
+            "severity": "CRITICAL" if s.weight >= 26.0 or risk_score >= 70.0 else "HIGH" if s.weight >= 20.0 else "MEDIUM",
             "explanation": s.description,
             "description": s.description,
             "evidence_snippet": s.evidence_snippet
@@ -183,7 +221,14 @@ def analyze_scam_message(message: str, sender: str = None) -> MessageAnalysisRes
         for s in detected_signals
     ]
 
-    verdict = f"{risk_level.upper()} FRAUD RISK DETECTED" if risk_score >= 40 else "LIKELY LOW RISK PATTERN"
+    if risk_score >= 70.0:
+        verdict = f"CRITICAL SCAM / PHISHING PATTERN DETECTED ({risk_score}/100)"
+    elif risk_score >= 40.0:
+        verdict = f"HIGH / MEDIUM FRAUD RISK DETECTED ({risk_score}/100)"
+    elif risk_score >= 15.0:
+        verdict = f"SUSPICIOUS SIGNALS DETECTED — EXERCISE CAUTION ({risk_score}/100)"
+    else:
+        verdict = "NO PROMINENT SCAM SIGNALS DETECTED — VERIFY INDEPENDENTLY"
 
     return MessageAnalysisResponse(
         risk_score=risk_score,

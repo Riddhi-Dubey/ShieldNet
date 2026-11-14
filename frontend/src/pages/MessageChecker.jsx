@@ -16,6 +16,7 @@ import {
 import { analyseMessage, extractErrorMessage } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
 import { LoadingState, ErrorState } from '../components/LoadingState';
+import PrivacyModal from '../components/PrivacyModal';
 
 const SAMPLE_SUSPICIOUS_MESSAGES = [
   "URGENT: Your SBI account has been suspended due to pending KYC update. Click http://sbi-kyc-verify-portal.in immediately to avoid permanent deactivation.",
@@ -30,6 +31,7 @@ export const MessageChecker = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
   const handleAnalyze = async (e) => {
     if (e) e.preventDefault();
@@ -102,24 +104,50 @@ export const MessageChecker = () => {
             />
           </div>
 
-          {/* Privacy Note */}
+          {/* Privacy Note & Zero-Storage Limits */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: '12px',
               fontSize: '12px',
-              color: 'var(--accent-green)',
-              backgroundColor: 'rgba(52, 211, 153, 0.08)',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid rgba(52, 211, 153, 0.2)',
+              backgroundColor: 'rgba(52, 211, 153, 0.05)',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              border: '1px solid rgba(52, 211, 153, 0.25)',
+              flexWrap: 'wrap',
             }}
           >
-            <Lock size={14} />
-            <span>
-              <strong>Zero Storage Guarantee:</strong> Your text is processed in-memory and is never automatically submitted to the ScamTrace database.
-            </span>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flex: 1, minWidth: '240px' }}>
+              <Lock size={16} style={{ color: 'var(--accent-green)', marginTop: '2px', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: 700, color: 'var(--accent-green)', marginBottom: '2px' }}>
+                  Zero-Storage & Stateless In-Memory Scanning Guarantee
+                </div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '11.5px', lineHeight: '1.45' }}>
+                  Your pasted text is parsed strictly in volatile RAM and immediately discarded. 
+                  Zero database writes, zero disk logging, and no external AI services receive your text.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPrivacyModalOpen(true)}
+              style={{
+                background: 'none',
+                border: '1px solid rgba(52, 211, 153, 0.4)',
+                color: 'var(--accent-green)',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                alignSelf: 'center',
+              }}
+            >
+              How to Verify Claims & Limits →
+            </button>
           </div>
 
           {/* Quick Sample Selector */}
@@ -330,6 +358,12 @@ export const MessageChecker = () => {
           </div>
         </div>
       )}
+
+      {/* Privacy Limits & Technical Verification Modal */}
+      <PrivacyModal
+        isOpen={privacyModalOpen}
+        onClose={() => setPrivacyModalOpen(false)}
+      />
     </div>
   );
 };
