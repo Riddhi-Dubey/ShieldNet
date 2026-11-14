@@ -148,11 +148,27 @@ export const InvestigationSearch = () => {
           </div>
 
           <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-            No matching intelligence records found.
+            No Matching Records — Assessed as UNVERIFIED / INSUFFICIENT EVIDENCE
           </h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.5 }}>
             No corroborating fraud flags, honeypot hits, or consented reports are currently registered for &ldquo;{lastSearched}&rdquo;.
           </p>
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'rgba(251, 191, 36, 0.08)',
+              border: '1px solid rgba(251, 191, 36, 0.25)',
+              borderRadius: '6px',
+              maxWidth: '520px',
+              margin: '0 auto 20px',
+              fontSize: '12px',
+              color: 'var(--accent-warning)',
+              textAlign: 'left',
+              lineHeight: 1.45,
+            }}
+          >
+            <strong>Important Investigative Notice:</strong> Absence of records in ScamTrace does NOT indicate that an identifier is safe or legitimate. Newly created scam infrastructure or freshly purchased SIM cards often have zero prior records. Always exercise vigilance.
+          </div>
 
           <button
             onClick={() => navigate('/shield/report', { state: { phoneNumber: lastSearched } })}

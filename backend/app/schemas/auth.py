@@ -25,6 +25,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6, max_length=100)
     role: str = Field("user", description="user, investigator, admin, guest")
+    invite_code: Optional[str] = Field(None, description="Optional administrative invite code for role promotion")
 
 
 class UserOut(BaseModel):

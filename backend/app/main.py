@@ -20,7 +20,8 @@ from backend.app.api import (
     reports,
     datasets,
     analytics,
-    auth
+    auth,
+    cases
 )
 
 # App Lifespan: Auto-initializes database schema & synthetic demonstration records
@@ -106,6 +107,7 @@ app.include_router(reports.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(cases.router, prefix="/api")
 
 
 @app.get("/")

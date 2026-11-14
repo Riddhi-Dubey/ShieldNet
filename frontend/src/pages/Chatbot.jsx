@@ -70,6 +70,9 @@ export const Chatbot = () => {
       const assistantMsg = {
         role: 'assistant',
         content: res.reply || res.response || res.message || "I evaluated your scenario. Always proceed with extreme caution and never transfer funds or share verification OTPs.",
+        topic: res.query_topic,
+        source: res.source_attribution,
+        actions: res.recommended_actions,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
@@ -183,7 +186,32 @@ export const Chatbot = () => {
                       boxShadow: 'var(--shadow-sm)',
                     }}
                   >
+                    {!isUser && msg.topic && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary-accent)', backgroundColor: 'rgba(56, 189, 248, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                          {msg.topic}
+                        </span>
+                        {msg.source && (
+                          <span style={{ fontSize: '10.5px', color: 'var(--accent-purple)', fontFamily: 'var(--font-mono)' }}>
+                            Source: {msg.source}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {msg.content}
+
+                    {!isUser && msg.actions && msg.actions.length > 0 && (
+                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green)', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          Recommended Safe Actions:
+                        </div>
+                        <ul style={{ paddingLeft: '16px', fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {msg.actions.map((act, aIdx) => (
+                            <li key={aIdx}>{act}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textAlign: isUser ? 'right' : 'left', fontFamily: 'var(--font-mono)' }}>
                     {msg.timestamp}

@@ -257,6 +257,69 @@ export const getAnalyticsSummary = async () => {
   return response.data;
 };
 
+// Threat Timeline
+export const getEntityTimeline = async (entityId) => {
+  const response = await apiClient.get(`/api/entities/${encodeURIComponent(entityId)}/timeline`);
+  return response.data;
+};
+
+// Case Management
+export const getCases = async (params = {}) => {
+  const response = await apiClient.get('/api/cases', { params });
+  return response.data;
+};
+
+export const createCase = async (caseData) => {
+  const response = await apiClient.post('/api/cases', caseData);
+  return response.data;
+};
+
+export const getCaseDetail = async (caseId) => {
+  const response = await apiClient.get(`/api/cases/${encodeURIComponent(caseId)}`);
+  return response.data;
+};
+
+export const updateCase = async (caseId, updateData) => {
+  const response = await apiClient.put(`/api/cases/${encodeURIComponent(caseId)}`, updateData);
+  return response.data;
+};
+
+export const deleteCase = async (caseId) => {
+  const response = await apiClient.delete(`/api/cases/${encodeURIComponent(caseId)}`);
+  return response.data;
+};
+
+export const attachCaseEntity = async (caseId, { entity_id, notes = '' }) => {
+  const response = await apiClient.post(`/api/cases/${encodeURIComponent(caseId)}/entities`, {
+    entity_id,
+    notes,
+  });
+  return response.data;
+};
+
+export const removeCaseEntity = async (caseId, entityId) => {
+  const response = await apiClient.delete(
+    `/api/cases/${encodeURIComponent(caseId)}/entities/${encodeURIComponent(entityId)}`
+  );
+  return response.data;
+};
+
+export const addCaseNote = async (caseId, { content, author = 'Investigator' }) => {
+  const response = await apiClient.post(`/api/cases/${encodeURIComponent(caseId)}/notes`, {
+    content,
+    author,
+  });
+  return response.data;
+};
+
+export const exportCaseDossier = async (caseId, format = 'markdown') => {
+  const response = await apiClient.get(`/api/cases/${encodeURIComponent(caseId)}/export`, {
+    params: { format },
+    responseType: 'text',
+  });
+  return response.data;
+};
+
 export default {
   getHealth,
   getDashboardStats,
@@ -264,6 +327,7 @@ export default {
   getEntityDetails,
   getEntityConnections,
   getEntityGraph,
+  getEntityTimeline,
   getNetworkOverview,
   getNetworkClusters,
   analyseMessage,
@@ -276,5 +340,14 @@ export default {
   uploadDataset,
   getDatasetsStatus,
   getAnalyticsSummary,
+  getCases,
+  createCase,
+  getCaseDetail,
+  updateCase,
+  deleteCase,
+  attachCaseEntity,
+  removeCaseEntity,
+  addCaseNote,
+  exportCaseDossier,
   extractErrorMessage,
 };

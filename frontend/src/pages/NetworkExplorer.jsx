@@ -372,15 +372,24 @@ export const NetworkExplorer = () => {
                 )}
               </div>
 
-              {/* Action Button */}
+              {/* Action Buttons */}
               {selectedNode && (
-                <button
-                  onClick={() => navigate(`/trace/investigate/${encodeURIComponent(selectedNode.id || selectedNode.label)}`)}
-                  className="btn btn-primary"
-                  style={{ width: '100%', marginTop: '16px', fontSize: '13px' }}
-                >
-                  Deep Entity Investigation <ExternalLink size={14} />
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+                  <button
+                    onClick={() => navigate(`/trace/investigate/${encodeURIComponent(selectedNode.id || selectedNode.label)}`)}
+                    className="btn btn-primary"
+                    style={{ width: '100%', fontSize: '13px' }}
+                  >
+                    Deep Entity Investigation <ExternalLink size={14} />
+                  </button>
+                  <button
+                    onClick={() => navigate('/trace/cases')}
+                    className="btn btn-secondary"
+                    style={{ width: '100%', fontSize: '12px' }}
+                  >
+                    Open in Case Workspace
+                  </button>
+                </div>
               )}
             </div>
           )}

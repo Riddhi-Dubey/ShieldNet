@@ -23,6 +23,7 @@ class ChatResponse(BaseModel):
     response: str
     reply: Optional[str] = None
     confidence: float
+    source_attribution: Optional[str] = None
     recommended_actions: List[str]
     emergency_contacts: List[str]
     disclaimer: str

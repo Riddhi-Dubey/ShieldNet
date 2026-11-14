@@ -13,7 +13,7 @@ _metadata = None
 
 
 def get_loaded_model():
-    """Lazy loader for trained Scikit-learn model."""
+    """Lazy loader for trained Scikit-learn model and metadata."""
     global _model, _metadata
     if _model is None:
         if os.path.exists(MODEL_PATH):
@@ -30,6 +30,7 @@ def get_loaded_model():
 def predict_url_phishing(url: str) -> Dict[str, Any]:
     """
     Predicts whether a URL is phishing using the trained ML model.
+    Returns calibrated probability, confidence, explainable features, and model provenance.
     Falls back gracefully if the model is unavailable.
     """
     features = extract_url_features(url)
@@ -48,6 +49,8 @@ def predict_url_phishing(url: str) -> Dict[str, Any]:
 
             return {
                 "model_available": True,
+                "model_version": meta.get("model_version", "2.2.0-calibrated") if meta else "2.2.0",
+                "model_algorithm": meta.get("algorithm", "RandomForest-Calibrated") if meta else "RandomForest",
                 "prediction": prediction_label,
                 "confidence": confidence,
                 "phishing_probability": round(phishing_prob, 3),
@@ -57,7 +60,6 @@ def predict_url_phishing(url: str) -> Dict[str, Any]:
             print(f"Error during ML prediction: {e}")
 
     # Fallback to pure heuristic prediction
-    # High risk signals: IP address, >1 suspicious keyword, shortener, punycode, hyphens
     heuristic_score = 0.0
     if features.get("ip_address_presence", 0) > 0:
         heuristic_score += 40.0
@@ -71,12 +73,16 @@ def predict_url_phishing(url: str) -> Dict[str, Any]:
         heuristic_score += 30.0
     if features.get("subdomain_count", 0) >= 3:
         heuristic_score += 15.0
+    if features.get("suspicious_tld_presence", 0) > 0:
+        heuristic_score += 20.0
     if features.get("https_presence", 0) == 0:
         heuristic_score += 10.0
 
     is_phishing = heuristic_score >= 40.0
     return {
         "model_available": False,
+        "model_version": "heuristic-fallback-v1.0",
+        "model_algorithm": "LexicalHeuristics",
         "prediction": "PHISHING" if is_phishing else "BENIGN",
         "confidence": round(min(1.0, heuristic_score / 100.0), 3),
         "phishing_probability": round(min(1.0, heuristic_score / 100.0), 3),

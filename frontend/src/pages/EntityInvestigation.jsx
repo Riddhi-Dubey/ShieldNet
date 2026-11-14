@@ -17,9 +17,10 @@ import {
   Wallet,
   Download
 } from 'lucide-react';
-import { getEntityDetails, getEntityConnections, extractErrorMessage } from '../services/api';
+import { getEntityDetails, getEntityConnections, getEntityTimeline, extractErrorMessage } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
 import EvidencePanel from '../components/EvidencePanel';
+import ThreatTimeline from '../components/ThreatTimeline';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 
 const TYPE_ICONS = {
@@ -35,6 +36,7 @@ export const EntityInvestigation = () => {
 
   const [entity, setEntity] = useState(null);
   const [connections, setConnections] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,13 +46,15 @@ export const EntityInvestigation = () => {
     setError(null);
 
     try {
-      const [entityRes, connRes] = await Promise.all([
+      const [entityRes, connRes, timelineRes] = await Promise.all([
         getEntityDetails(id),
         getEntityConnections(id).catch(() => []),
+        getEntityTimeline(id).catch(() => ({ events: [] })),
       ]);
 
       setEntity(entityRes);
       setConnections(Array.isArray(connRes) ? connRes : connRes?.connections || []);
+      setTimelineEvents(timelineRes?.events || []);
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -301,6 +305,23 @@ export const EntityInvestigation = () => {
           </div>
         </div>
       )}
+
+      {/* Threat Activity Timeline */}
+      <div className="cyber-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={16} style={{ color: 'var(--primary-accent)' }} />
+              Verifiable Threat Timeline ({timelineEvents.length})
+            </h3>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Chronological provenance of reports, network linkages, and case observations.
+            </span>
+          </div>
+        </div>
+
+        <ThreatTimeline events={timelineEvents} />
+      </div>
 
       {/* Evidence Panel & Provenance Component */}
       <EvidencePanel

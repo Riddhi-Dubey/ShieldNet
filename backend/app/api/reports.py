@@ -67,12 +67,32 @@ def revoke_consent_record(
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
-    Revokes an active consent record.
+    Revokes an active consent record with ownership validation.
+    Verifies that the caller owns the consent before revocation.
     Subsequent API calls attempting to use this consent_id will be rejected.
     """
     consent = db.query(Consent).filter(Consent.consent_id == payload.consent_id).first()
     if not consent:
         raise HTTPException(status_code=404, detail="Consent record not found")
+
+    # Ownership validation
+    if consent.user_id:
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to revoke consent tied to a user account."
+            )
+        if current_user.user_id != consent.user_id and (current_user.role or "").lower() != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied: You do not own this consent record."
+            )
+    elif consent.session_id and payload.session_id:
+        if consent.session_id != payload.session_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Session mismatch: unable to verify consent ownership."
+            )
 
     consent.revoke()
     db.commit()

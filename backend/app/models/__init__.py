@@ -8,6 +8,7 @@ from backend.app.models.dataset import DatasetImport
 from backend.app.models.evidence import Evidence
 from backend.app.models.quiz import QuizQuestion
 from backend.app.models.audit import AuditLog
+from backend.app.models.case import Case, CaseEntity, CaseNote
 
 __all__ = [
     "User",
@@ -20,4 +21,7 @@ __all__ = [
     "Evidence",
     "QuizQuestion",
     "AuditLog",
+    "Case",
+    "CaseEntity",
+    "CaseNote",
 ]

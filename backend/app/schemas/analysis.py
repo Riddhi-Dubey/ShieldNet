@@ -37,13 +37,16 @@ class UrlAnalysisResponse(BaseModel):
     url: str
     domain: str
     model_prediction: str = Field(..., description="PHISHING, BENIGN, or SUSPICIOUS")
-    confidence: Optional[float] = Field(None, description="Model confidence if ML available")
+    confidence: Optional[float] = Field(None, description="Calibrated model confidence")
+    calibrated_confidence: Optional[float] = Field(None, description="Calibrated probability percentage")
+    model_version: Optional[str] = Field(None, description="Trained model version")
     model_availability: bool
     heuristic_findings: List[str]
     warning_signs: List[str] = Field(default_factory=list)
     risk_score: float = Field(..., ge=0.0, le=100.0)
     risk_level: str
     explanation: str
+    https_security_observation: Optional[str] = None
     safe_next_steps: List[str]
     limitations: str
     domain_info: Optional[Dict[str, Any]] = None

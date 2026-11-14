@@ -199,7 +199,7 @@ export const URLChecker = () => {
                   style={{ fontSize: '11px', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
                   <Cpu size={12} />
-                  Engine: {result.evaluation_method || result.engine || 'Model Prediction & Heuristics'}
+                  {result.model_version ? `Model ${result.model_version}` : 'RandomForest v2.2.0'} {result.calibrated_confidence ? `• ${result.calibrated_confidence}% Conf` : ''}
                 </span>
 
                 {result.is_verified_intelligence && (
@@ -271,6 +271,25 @@ export const URLChecker = () => {
                 </span>
               </div>
             </div>
+
+            {/* HTTPS Security Observation Callout */}
+            {result.https_security_observation && (
+              <div
+                style={{
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong style={{ color: 'var(--primary-accent)' }}>Transport Security Observation: </strong>
+                {result.https_security_observation}
+              </div>
+            )}
           </div>
 
           {/* Warning Signs */}

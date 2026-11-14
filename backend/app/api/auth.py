@@ -53,10 +53,20 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Username already registered")
 
+    # Prevent privilege escalation: standard self-registration defaults to "user" (citizen).
+    # Investigator or Admin elevation requires a verified invite code or administrator provisioning.
+    assigned_role = "user"
+    if payload.role in ["investigator", "admin"]:
+        admin_invite = os.getenv("ADMIN_INVITE_CODE", "shieldnet-cyber-intel-2026")
+        if payload.invite_code and payload.invite_code == admin_invite:
+            assigned_role = payload.role
+        else:
+            assigned_role = "user"
+
     user = User(
         username=payload.username,
         password_hash=hash_password(payload.password),
-        role=payload.role if payload.role in ["user", "investigator"] else "user"
+        role=assigned_role
     )
     db.add(user)
     db.commit()

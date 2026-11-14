@@ -11,6 +11,7 @@ import {
   Share2, 
   BarChart3, 
   Database,
+  Briefcase,
   ExternalLink,
   LifeBuoy
 } from 'lucide-react';
@@ -27,6 +28,7 @@ export const Sidebar = ({ onOpenEmergency, onOpenPrivacy }) => {
   const traceNavs = [
     { to: '/trace/dashboard', label: 'Threat Overview', icon: LayoutDashboard },
     { to: '/trace/search', label: 'Universal Search', icon: Search },
+    { to: '/trace/cases', label: 'Case Workspace', icon: Briefcase, badge: 'Active' },
     { to: '/trace/network', label: 'Network Explorer', icon: Share2, badge: 'Graph' },
     { to: '/trace/analytics', label: 'Threat Analytics', icon: BarChart3 },
     { to: '/trace/datasets', label: 'Dataset Sources', icon: Database },

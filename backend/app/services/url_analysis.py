@@ -8,9 +8,9 @@ from backend.app.security.validation import is_ssrf_risk
 
 def analyze_scam_url(url: str) -> UrlAnalysisResponse:
     """
-    Performs comprehensive structural and lexical analysis of a URL.
-    Safely inspects syntax without making any network requests (SSRF-safe).
-    Uses the trained Scikit-learn model when available, falling back to heuristics.
+    Performs comprehensive structural, lexical, and machine-learning analysis of a URL.
+    Safely inspects syntax without making any outbound network requests (SSRF-safe).
+    Uses the calibrated Scikit-learn model when available, falling back to heuristics.
     """
     clean_url = url.strip()
     norm_url = clean_url
@@ -27,10 +27,12 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
     ml_result = predict_url_phishing(clean_url)
     features = ml_result["features"]
     model_available = ml_result["model_available"]
+    model_version = ml_result.get("model_version", "2.2.0-calibrated")
     model_pred = ml_result["prediction"]
     confidence = ml_result["confidence"]
+    phishing_prob = ml_result.get("phishing_probability", 0.0)
 
-    # Assemble heuristic findings
+    # Assemble explainable heuristic findings
     heuristic_findings: List[str] = []
 
     if ssrf_detected:
@@ -45,11 +47,20 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
     if features.get("punycode_presence", 0) > 0:
         heuristic_findings.append("Domain utilizes Punycode ('xn--') indicating possible homoglyph or lookalike spoofing.")
 
+    if features.get("at_symbol_presence", 0) > 0:
+        heuristic_findings.append("URL contains '@' character, commonly used to conceal the genuine destination host.")
+
+    if features.get("suspicious_tld_presence", 0) > 0:
+        heuristic_findings.append("Domain utilizes a high-abuse top-level domain frequently associated with disposable fraud infrastructure.")
+
     if features.get("suspicious_keyword_count", 0) > 0:
         heuristic_findings.append(f"URL string contains {int(features['suspicious_keyword_count'])} high-risk security/banking keywords.")
 
     if features.get("subdomain_count", 0) >= 3:
         heuristic_findings.append(f"Excessive subdomain nesting detected ({int(features['subdomain_count'])} subdomains).")
+
+    if features.get("shannon_entropy", 0) > 4.2:
+        heuristic_findings.append(f"High character randomness / Shannon entropy ({features['shannon_entropy']:.2f}) observed.")
 
     if features.get("https_presence", 0) == 0:
         heuristic_findings.append("Insecure plain HTTP protocol in use (lacks TLS encryption).")
@@ -62,7 +73,6 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
 
     # Risk score calculation
     # Base risk derived from ML phishing probability
-    phishing_prob = ml_result.get("phishing_probability", 0.0)
     base_risk = phishing_prob * 75.0
 
     # Add heuristic modifiers
@@ -73,12 +83,27 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
         modifier += 20.0
     if features.get("shortener_presence", 0) > 0:
         modifier += 15.0
+    if features.get("at_symbol_presence", 0) > 0:
+        modifier += 20.0
+    if features.get("suspicious_tld_presence", 0) > 0:
+        modifier += 15.0
     if ssrf_detected:
         modifier += 25.0
 
     raw_risk = min(100.0, base_risk + modifier)
     risk_score = round(raw_risk, 1)
     risk_level = calculate_risk_level(risk_score)
+
+    # HTTPS Nuance Explanation
+    if clean_url.lower().startswith("https://"):
+        https_observation = (
+            "TLS Encryption Active: Connection is encrypted in transit. IMPORTANT: HTTPS guarantees channel encryption, "
+            "NOT domain legitimacy. Over 80% of modern phishing domains use free automated TLS certificates."
+        )
+    else:
+        https_observation = (
+            "Plain Insecure HTTP: Connection is unencrypted. Any credentials or data entered can be intercepted in transit."
+        )
 
     # Explanation text
     if model_pred == "PHISHING" or risk_score >= 60.0:
@@ -114,7 +139,8 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
         "domain": domain,
         "protocol": "HTTPS (TLS Active)" if clean_url.startswith("https://") else "Insecure HTTP Protocol",
         "age": "Recent / Unverified",
-        "registrar": "Public Registrar / Masked"
+        "registrar": "Public Registrar / Masked",
+        "shannon_entropy": features.get("shannon_entropy", 0.0)
     }
 
     return UrlAnalysisResponse(
@@ -122,12 +148,15 @@ def analyze_scam_url(url: str) -> UrlAnalysisResponse:
         domain=domain,
         model_prediction=model_pred,
         confidence=confidence,
+        calibrated_confidence=round(confidence * 100.0, 1) if confidence else None,
+        model_version=model_version,
         model_availability=model_available,
         heuristic_findings=heuristic_findings,
         warning_signs=heuristic_findings,
         risk_score=risk_score,
         risk_level=risk_level,
         explanation=explanation,
+        https_security_observation=https_observation,
         safe_next_steps=safe_next_steps,
         limitations=limitations,
         domain_info=domain_info

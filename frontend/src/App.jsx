@@ -21,6 +21,7 @@ import EntityInvestigation from './pages/EntityInvestigation';
 import Analytics from './pages/Analytics';
 import DataSources from './pages/DataSources';
 import InvestigationReport from './pages/InvestigationReport';
+import CaseManagement from './pages/CaseManagement';
 
 // Inner layout component to conditionally render Sidebar
 const AppContent = ({ onOpenEmergency, onOpenPrivacy }) => {
@@ -52,6 +53,7 @@ const AppContent = ({ onOpenEmergency, onOpenPrivacy }) => {
           {/* ScamTrace Modules */}
           <Route path="/trace/dashboard" element={<Dashboard />} />
           <Route path="/trace/search" element={<InvestigationSearch />} />
+          <Route path="/trace/cases" element={<CaseManagement />} />
           <Route path="/trace/investigate/:id" element={<EntityInvestigation />} />
           <Route path="/trace/network" element={<NetworkExplorer />} />
           <Route path="/trace/analytics" element={<Analytics />} />

@@ -10,7 +10,8 @@ import {
   TrendingUp,
   AlertTriangle,
   Search,
-  ExternalLink
+  ExternalLink,
+  Info
 } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getDashboardStats, extractErrorMessage } from '../services/api';

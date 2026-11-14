@@ -26,3 +26,4 @@ class ConsentResponse(BaseModel):
 
 class ConsentRevokeRequest(BaseModel):
     consent_id: str
+    session_id: Optional[str] = None

@@ -17,6 +17,7 @@ from backend.app.graph.traversal import multi_hop_traversal
 from backend.app.graph.clusters import identify_network_clusters
 from backend.app.graph.centrality import calculate_centrality_and_rankings
 from backend.app.graph.evidence import export_subgraph_to_cytoscape
+from backend.app.services.timeline import get_entity_threat_timeline
 
 router = APIRouter(tags=["ScamTrace Intelligence"])
 
@@ -177,6 +178,15 @@ def get_network_overview(
         return export_subgraph_to_cytoscape(G, selected_ids)
 
     return export_subgraph_to_cytoscape(G)
+
+
+@router.get("/entities/{entity_id}/timeline")
+def get_entity_timeline(entity_id: str, db: Session = Depends(get_db)):
+    """
+    Retrieves a chronological event timeline for the specified entity,
+    including registration, reports, inbound/outbound links, and case associations.
+    """
+    return get_entity_threat_timeline(db, entity_id)
 
 
 @router.get("/network/clusters")

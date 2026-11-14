@@ -9,6 +9,7 @@ from backend.app.models.report import Report
 from backend.app.models.relationship import Relationship
 from backend.app.graph.graph_builder import build_networkx_graph
 from backend.app.graph.traversal import multi_hop_traversal
+from backend.app.services.timeline import get_entity_threat_timeline
 
 
 def generate_entity_investigation_data(db: Session, entity_id: str) -> Dict[str, Any]:
@@ -30,6 +31,28 @@ def generate_entity_investigation_data(db: Session, entity_id: str) -> Dict[str,
     G = build_networkx_graph(db)
     connected_summaries, _ = multi_hop_traversal(G, actual_id, max_hops=2)
 
+    # Timeline events
+    timeline_data = get_entity_threat_timeline(db, actual_id)
+
+    # Recommendations based on risk score and type
+    recommendations = []
+    if entity.risk_score >= 80.0:
+        recommendations.append("Immediate Threat Isolation: Coordinate with registrar/telecom provider for domain suspension or SIM blocking.")
+        recommendations.append("Financial Freezing Request: Submit CFCFRMS / 1930 preservation notice to associated intermediary payment gateways.")
+        recommendations.append("Cross-Jurisdictional Notice: Escalate to Cyber Cell coordination unit for cluster linkage.")
+    elif entity.risk_score >= 50.0:
+        recommendations.append("Active Monitoring: Place identifier on high-priority watch-list for recurring transaction alerts.")
+        recommendations.append("Mule Account Traversal: Trace incoming and outgoing transfer hops to identify secondary layering nodes.")
+    else:
+        recommendations.append("Passive Intelligence Collection: Retain in threat registry pending corroborating reports.")
+
+    executive_summary = (
+        f"Forensic investigation profile for {entity.entity_type} '{entity.identifier}' indicates an aggregate risk score "
+        f"of {entity.risk_score}/100 ({entity.risk_level} threat level). Source provenance traces to dataset '{entity.source_dataset}' "
+        f"with verification posture '{entity.evidence_status}'. The identifier is linked to {len(reports)} independent report(s) "
+        f"and {len(connected_summaries)} multi-hop graph neighbor(s)."
+    )
+
     return {
         "entity_id": entity.entity_id,
         "identifier": entity.identifier,
@@ -40,6 +63,8 @@ def generate_entity_investigation_data(db: Session, entity_id: str) -> Dict[str,
         "source_dataset": entity.source_dataset,
         "evidence_status": entity.evidence_status,
         "created_at": entity.created_at.isoformat() if entity.created_at else None,
+        "executive_summary": executive_summary,
+        "recommendations": recommendations,
         "reports": [
             {
                 "report_id": r.report_id,
@@ -72,11 +97,13 @@ def generate_entity_investigation_data(db: Session, entity_id: str) -> Dict[str,
             for r in in_rels
         ],
         "connected_nodes_count": len(connected_summaries),
+        "timeline": timeline_data.get("events", []),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "limitations": (
-            "This report is generated automatically by ScamShield + ScamTrace from stored dataset evidence "
-            "and consented incident submissions. Risk metrics are heuristic decision-support indicators and "
-            "do not represent legal proof of fraud or calibrated probability. Corroboration required."
+            "This dossier is compiled programmatically by ScamShield + ScamTrace from stored dataset evidence, "
+            "consented incident submissions, and graph topology. Algorithmic risk scores are heuristic investigative "
+            "indicators, NOT calibrated criminal probabilities or definitive judicial findings. Independent human-in-the-loop "
+            "verification and subpoena of carrier/banking records are required prior to enforcement action."
         )
     }
 
@@ -90,6 +117,10 @@ def export_entity_report_csv(data: Dict[str, Any]) -> str:
     writer.writerow(["Generated At", data["generated_at"]])
     writer.writerow([])
 
+    writer.writerow(["EXECUTIVE SUMMARY"])
+    writer.writerow([data["executive_summary"]])
+    writer.writerow([])
+
     writer.writerow(["ENTITY PROFILE"])
     writer.writerow(["Entity ID", data["entity_id"]])
     writer.writerow(["Identifier", data["identifier"]])
@@ -99,12 +130,19 @@ def export_entity_report_csv(data: Dict[str, Any]) -> str:
     writer.writerow(["Risk Level", data["risk_level"]])
     writer.writerow(["Source Dataset", data["source_dataset"]])
     writer.writerow(["Evidence Status", data["evidence_status"]])
+    writer.writerow(["Multi-Hop Neighbors Count", data["connected_nodes_count"]])
     writer.writerow([])
 
-    writer.writerow(["ASSOCIATED CITIZEN / SYSTEM REPORTS"])
-    writer.writerow(["Report ID", "Scam Type", "Sanitized Description", "Verification Status", "Reported At"])
-    for r in data["reports"]:
-        writer.writerow([r["report_id"], r["scam_type"], r["description"], r["verification_status"], r["reported_at"]])
+    writer.writerow(["CHRONOLOGICAL THREAT TIMELINE"])
+    writer.writerow(["Timestamp", "Event Type", "Title", "Description", "Provenance", "Severity"])
+    for ev in data.get("timeline", []):
+        writer.writerow([ev.get("timestamp"), ev.get("event_type"), ev.get("title"), ev.get("description"), ev.get("provenance"), ev.get("severity")])
+    writer.writerow([])
+
+    writer.writerow(["CITIZEN & SYSTEM REPORTS"])
+    writer.writerow(["Report ID", "Scam Type", "Verification Status", "Reported At", "Sanitized Description"])
+    for rep in data["reports"]:
+        writer.writerow([rep["report_id"], rep["scam_type"], rep["verification_status"], rep["reported_at"], rep["description"]])
     writer.writerow([])
 
     writer.writerow(["DIRECT GRAPH RELATIONSHIPS"])
@@ -112,6 +150,11 @@ def export_entity_report_csv(data: Dict[str, Any]) -> str:
     for rel in data["relationships"]:
         peer = rel.get("target_entity_id") or rel.get("source_entity_id")
         writer.writerow([rel["direction"], peer, rel["relationship_type"], rel["confidence"], rel["evidence_source"], rel["evidence_status"]])
+    writer.writerow([])
+
+    writer.writerow(["RECOMMENDED NEXT STEPS"])
+    for rec in data.get("recommendations", []):
+        writer.writerow([rec])
     writer.writerow([])
 
     writer.writerow(["LIMITATIONS & FORENSIC DISCLAIMER"])
@@ -123,35 +166,75 @@ def export_entity_report_csv(data: Dict[str, Any]) -> str:
 def export_entity_report_markdown(data: Dict[str, Any]) -> str:
     """Exports printable Markdown/HTML dossier for investigators."""
     md = f"""# ScamTrace Threat Intelligence Dossier
-**Generated At:** {data['generated_at']}
+**Generated At:** {data['generated_at']}  
+**Classification:** RESTRICTED FORENSIC INTELLIGENCE  
 
-## 1. Entity Profile
+---
+
+## Executive Summary
+> {data['executive_summary']}
+
+---
+
+## 1. Entity Profile & Provenance
 - **Entity ID:** `{data['entity_id']}`
 - **Identifier:** `{data['identifier']}`
-- **Normalized Value:** `{data['normalized_value']}`
-- **Type:** `{data['entity_type']}`
-- **Risk Score:** **{data['risk_score']}/100** ({data['risk_level']})
-- **Provenance Dataset:** `{data['source_dataset']}`
-- **Evidence Status:** `{data['evidence_status']}`
+- **Normalized Canonical Form:** `{data['normalized_value']}`
+- **Entity Classification:** `{data['entity_type']}`
+- **Assessed Risk Level:** **{data['risk_level']}** ({data['risk_score']}/100)
+- **Primary Intelligence Source:** `{data['source_dataset']}`
+- **Verification Posture:** `{data['evidence_status']}`
+- **Network Footprint:** {data['connected_nodes_count']} multi-hop adjacent nodes
 
-## 2. Connected Reports ({len(data['reports'])})
+---
+
+## 2. Chronological Threat Timeline
 """
-    if not data['reports']:
-        md += "_No independent citizen reports filed directly against this identifier._\n"
+    if not data.get("timeline"):
+        md += "_No chronological events recorded for this entity._\n"
     else:
-        for r in data['reports']:
-            md += f"- **[{r['scam_type']}]** ({r['verification_status']}) {r['description']} _(Filed: {r['reported_at']})_\n"
-
-    md += f"\n## 3. Direct Network Relationships ({len(data['relationships'])})\n"
-    if not data['relationships']:
-        md += "_No direct relationships recorded in threat graph._\n"
-    else:
-        for rel in data['relationships']:
-            peer = rel.get('target_entity_id') or rel.get('source_entity_id')
-            md += f"- **{rel['direction']}** `[{rel['relationship_type']}]` -> `{peer}` (Confidence: {rel['confidence']}, Source: {rel['evidence_source']})\n"
+        md += "| Timestamp | Event Type | Details | Provenance | Severity |\n"
+        md += "|---|---|---|---|---|\n"
+        for ev in data["timeline"]:
+            md += f"| {ev.get('timestamp', '')[:19]} | `{ev.get('event_type')}` | {ev.get('title')} - {ev.get('description')} | {ev.get('provenance')} | {ev.get('severity')} |\n"
 
     md += f"""
-## 4. Investigative Limitations & Notice
-> {data['limitations']}
+---
+
+## 3. Connected Incident Reports ({len(data['reports'])})
+"""
+    if not data['reports']:
+        md += "_No independent citizen incident reports logged directly against this identifier._\n"
+    else:
+        for r in data['reports']:
+            md += f"- **[{r['scam_type']}]** ({r['verification_status']}): {r['description']} _(Reported: {r['reported_at']})_\n"
+
+    md += f"""
+---
+
+## 4. Direct Network Relationships ({len(data['relationships'])})
+"""
+    if not data['relationships']:
+        md += "_No direct relationships registered in the threat graph._\n"
+    else:
+        md += "| Direction | Target Node | Relationship | Confidence | Evidence Source |\n"
+        md += "|---|---|---|---|---|\n"
+        for rel in data['relationships']:
+            peer = rel.get('target_entity_id') or rel.get('source_entity_id')
+            md += f"| {rel['direction']} | `{peer}` | `{rel['relationship_type']}` | {rel['confidence']:.2f} | {rel['evidence_source']} |\n"
+
+    md += f"""
+---
+
+## 5. Recommended Investigative Actions
+"""
+    for rec in data.get("recommendations", []):
+        md += f"- {rec}\n"
+
+    md += f"""
+---
+
+## 6. Limitations & Statutory Notice
+> **Notice**: {data['limitations']}
 """
     return md

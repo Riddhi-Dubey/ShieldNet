@@ -14,8 +14,9 @@ import {
   ExternalLink,
   ShieldAlert
 } from 'lucide-react';
-import { getEntityDetails, getEntityConnections, extractErrorMessage } from '../services/api';
+import { getEntityDetails, getEntityConnections, getEntityTimeline, extractErrorMessage } from '../services/api';
 import RiskBadge from '../components/RiskBadge';
+import ThreatTimeline from '../components/ThreatTimeline';
 import { LoadingState, ErrorState } from '../components/LoadingState';
 
 export const InvestigationReport = () => {
@@ -24,6 +25,7 @@ export const InvestigationReport = () => {
 
   const [entity, setEntity] = useState(null);
   const [connections, setConnections] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,12 +34,14 @@ export const InvestigationReport = () => {
       setLoading(true);
       setError(null);
       try {
-        const [entityData, connData] = await Promise.all([
+        const [entityData, connData, timelineData] = await Promise.all([
           getEntityDetails(id),
           getEntityConnections(id).catch(() => []),
+          getEntityTimeline(id).catch(() => ({ events: [] })),
         ]);
         setEntity(entityData);
         setConnections(Array.isArray(connData) ? connData : connData?.connections || []);
+        setTimelineEvents(timelineData?.events || []);
       } catch (err) {
         setError(extractErrorMessage(err));
       } finally {
@@ -51,27 +55,22 @@ export const InvestigationReport = () => {
     window.print();
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (!entity) return;
-    const rows = [
-      ['FIELD', 'VALUE'],
-      ['Identifier', entity.identifier || id],
-      ['Type', entity.type || 'N/A'],
-      ['Risk Level', entity.riskLevel || 'N/A'],
-      ['Risk Score', entity.riskScore ?? 'N/A'],
-      ['Source Dataset', entity.sourceDataset || 'N/A'],
-      ['Report Date', new Date().toISOString()],
-      ['Connected Entities Count', connections.length],
-    ];
+    try {
+      window.open(`/api/entities/${encodeURIComponent(id)}/export?format=csv`, '_blank');
+    } catch (e) {
+      alert('Failed to initiate CSV export');
+    }
+  };
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((e) => e.join(',')).join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Investigation_Dossier_${id}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExportMarkdown = async () => {
+    if (!entity) return;
+    try {
+      window.open(`/api/entities/${encodeURIComponent(id)}/export?format=markdown`, '_blank');
+    } catch (e) {
+      alert('Failed to initiate Markdown export');
+    }
   };
 
   if (loading) {
@@ -105,6 +104,9 @@ export const InvestigationReport = () => {
         </button>
 
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={handleExportMarkdown} className="btn btn-secondary" style={{ fontSize: '13px' }}>
+            <FileText size={14} /> Export MD
+          </button>
           <button onClick={handleExportCSV} className="btn btn-secondary" style={{ fontSize: '13px' }}>
             <Download size={14} /> Export CSV
           </button>
@@ -255,6 +257,14 @@ export const InvestigationReport = () => {
           ) : (
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No direct multi-hop links registered.</div>
           )}
+        </div>
+
+        {/* Chronological Threat Timeline */}
+        <div>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+            Chronological Incident & Network Timeline ({timelineEvents.length} Events)
+          </h3>
+          <ThreatTimeline events={timelineEvents} />
         </div>
 
         {/* Regulatory Limitations Disclaimer */}

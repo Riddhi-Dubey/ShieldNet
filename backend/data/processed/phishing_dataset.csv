@@ -1,0 +1,136 @@
+url,label,root_domain,source
+http://secure-sbi-login.verify-portal.invalid/update-kyc,1,verify-portal.invalid,PhishTank/OpenPhish Patterns
+http://sbi-kyc-verify-portal.in/login.php,1,sbi-kyc-verify-portal.in,PhishTank/OpenPhish Patterns
+http://hdfc-netbanking-alert.security-auth.invalid/verify,1,security-auth.invalid,PhishTank/OpenPhish Patterns
+http://icici-verify-account.info.invalid/session/update,1,info.invalid,PhishTank/OpenPhish Patterns
+http://axis-bank-pan-card-link.support-kyc.invalid/verify,1,support-kyc.invalid,PhishTank/OpenPhish Patterns
+http://kotak-811-kyc-reactivation.security-alert.invalid/form,1,security-alert.invalid,PhishTank/OpenPhish Patterns
+http://punjab-national-bank-fraud-dept.support-update.invalid/case,1,support-update.invalid,PhishTank/OpenPhish Patterns
+http://bank-of-baroda-reward-points.redeem-portal.invalid/claim,1,redeem-portal.invalid,PhishTank/OpenPhish Patterns
+http://secure-paypal-confirm-account.fraud-alert.invalid/webapps,1,fraud-alert.invalid,PhishTank/OpenPhish Patterns
+http://chase-security-verify-identity.auth-flow.invalid/signin,1,auth-flow.invalid,PhishTank/OpenPhish Patterns
+http://wellsfargo-account-suspended-online.service-center.invalid/alert,1,service-center.invalid,PhishTank/OpenPhish Patterns
+http://barclays-protect-unauthorized-access.online-bank.invalid/secure,1,online-bank.invalid,PhishTank/OpenPhish Patterns
+http://paytm-kyc-expired-urgent.service-center.invalid/kyc,1,service-center.invalid,PhishTank/OpenPhish Patterns
+http://phonepe-reward-scratchcard.offers-win.invalid/collect,1,offers-win.invalid,PhishTank/OpenPhish Patterns
+http://gpay-cashback-voucher-claim.promotions.invalid/redeem,1,promotions.invalid,PhishTank/OpenPhish Patterns
+http://upi-rewards-cashback-gpay.offers-promotions.invalid/vpa,1,offers-promotions.invalid,PhishTank/OpenPhish Patterns
+http://electricity-bill-power-cutoff.payment-gateway.invalid/bill,1,payment-gateway.invalid,PhishTank/OpenPhish Patterns
+http://bses-delhi-power-disconnection-alert.bill-pay.invalid/pay,1,bill-pay.invalid,PhishTank/OpenPhish Patterns
+http://fedex-parcel-customs-hold.courier-clearance.invalid/pay,1,courier-clearance.invalid,PhishTank/OpenPhish Patterns
+http://dhl-express-duty-payment.parcel-tracking.invalid/release,1,parcel-tracking.invalid,PhishTank/OpenPhish Patterns
+http://post-office-parcel-undelivered.postal-tracking.invalid/fee,1,postal-tracking.invalid,PhishTank/OpenPhish Patterns
+http://income-tax-refund-claim-approval.dept.invalid/itr-v,1,dept.invalid,PhishTank/OpenPhish Patterns
+http://cyber-police-notice-digital-arrest.cbi-gov.invalid/summons,1,cbi-gov.invalid,PhishTank/OpenPhish Patterns
+http://epfo-claim-kyc-approval.provident-fund.invalid/status,1,provident-fund.invalid,PhishTank/OpenPhish Patterns
+http://challan-parivahan-traffic-fine.payment-portal.invalid/pay,1,payment-portal.invalid,PhishTank/OpenPhish Patterns
+http://airtel-sim-5g-upgrade.esim-verification.invalid/kyc,1,esim-verification.invalid,PhishTank/OpenPhish Patterns
+http://jio-free-5g-data-recharge.promotions-offer.invalid/claim,1,promotions-offer.invalid,PhishTank/OpenPhish Patterns
+http://is.gd/airtel-sim-kyc-update,1,is.gd,PhishTank/OpenPhish Patterns
+http://appleid-device-locked.icloud-security.invalid/auth,1,icloud-security.invalid,PhishTank/OpenPhish Patterns
+http://microsoft-365-password-expired.office-portal.invalid/reset,1,office-portal.invalid,PhishTank/OpenPhish Patterns
+http://google-drive-shared-invoice.file-download.invalid/doc?id=238,1,file-download.invalid,PhishTank/OpenPhish Patterns
+http://netflix-billing-suspended.account-update.invalid/payment,1,account-update.invalid,PhishTank/OpenPhish Patterns
+http://amazon-order-refund-resolution.invalid/help?order=3948,1,amazon-order-refund-resolution.invalid,PhishTank/OpenPhish Patterns
+http://meta-business-verification-badge.facebook-support.invalid/apply,1,facebook-support.invalid,PhishTank/OpenPhish Patterns
+http://whatsapp-account-unban-request.verify-center.invalid/appeal,1,verify-center.invalid,PhishTank/OpenPhish Patterns
+http://dropbox-shared-confidential-document.cloud-viewer.invalid/view,1,cloud-viewer.invalid,PhishTank/OpenPhish Patterns
+http://cryptocurrency-doubler-investment.yield-farm.invalid/deposit,1,yield-farm.invalid,PhishTank/OpenPhish Patterns
+http://binance-unauthorized-withdrawal-alert.sec-check.invalid/auth,1,sec-check.invalid,PhishTank/OpenPhish Patterns
+http://metamask-sync-wallet-seed-phrase.validator.invalid/connect,1,validator.invalid,PhishTank/OpenPhish Patterns
+http://trustwallet-airdrop-claim-bonus.dapp-reward.invalid/claim,1,dapp-reward.invalid,PhishTank/OpenPhish Patterns
+http://coinbase-pro-security-lockout.auth-check.invalid/verify,1,auth-check.invalid,PhishTank/OpenPhish Patterns
+http://free-usdt-tether-airdrop-portal.tron-giveaway.invalid/get,1,tron-giveaway.invalid,PhishTank/OpenPhish Patterns
+http://free-iphone-winner-kbc.claim-reward.invalid/register,1,claim-reward.invalid,PhishTank/OpenPhish Patterns
+http://kbc-lottery-jio-lucky-draw.winner-selection.invalid/form,1,winner-selection.invalid,PhishTank/OpenPhish Patterns
+http://telegram-work-daily-payout.invalid/task?ref=98765,1,telegram-work-daily-payout.invalid,PhishTank/OpenPhish Patterns
+http://whatapp-gold-exclusive-download.apk-installer.invalid/get,1,apk-installer.invalid,PhishTank/OpenPhish Patterns
+http://part-time-youtube-review-job.merchant-task.invalid/join,1,merchant-task.invalid,PhishTank/OpenPhish Patterns
+http://instant-personal-loan-no-cibil.fast-credit.invalid/apply,1,fast-credit.invalid,PhishTank/OpenPhish Patterns
+http://192.168.1.100/bank-signin/index.php,1,1.100,PhishTank/OpenPhish Patterns
+http://185.220.101.5/banking/login.html,1,101.5,PhishTank/OpenPhish Patterns
+http://103.20.12.54/fake-login/sbi.html,1,12.54,PhishTank/OpenPhish Patterns
+http://45.134.20.12/update-credentials.aspx,1,20.12,PhishTank/OpenPhish Patterns
+http://194.26.29.112/auth/login.php?client=sbi,1,29.112,PhishTank/OpenPhish Patterns
+http://178.128.45.6/online-banking/verify,1,45.6,PhishTank/OpenPhish Patterns
+http://bit.ly/sbi-urgent-reward-2026,1,bit.ly,PhishTank/OpenPhish Patterns
+http://tinyurl.com/free-usdt-airdrop-bonus,1,tinyurl.com,PhishTank/OpenPhish Patterns
+http://t.co/claim-crypto-bonus-now,1,t.co,PhishTank/OpenPhish Patterns
+http://cutt.ly/instant-loan-approval-no-documents,1,cutt.ly,PhishTank/OpenPhish Patterns
+http://is.gd/verify-hdfc-otp,1,is.gd,PhishTank/OpenPhish Patterns
+http://rb.gy/electricity-bill-clearance,1,rb.gy,PhishTank/OpenPhish Patterns
+http://xn--sbi-9cd.invalid/banking-portal,1,xn--sbi-9cd.invalid,PhishTank/OpenPhish Patterns
+http://xn--paypa-gsa.invalid/signin,1,xn--paypa-gsa.invalid,PhishTank/OpenPhish Patterns
+http://xn--gogle-p7a.invalid/account-recovery,1,xn--gogle-p7a.invalid,PhishTank/OpenPhish Patterns
+http://secure.login.sbi.co.in.portal-services.xyz/update,1,portal-services.xyz,PhishTank/OpenPhish Patterns
+http://netbanking.hdfcbank.com.auth-security.top/login,1,auth-security.top,PhishTank/OpenPhish Patterns
+http://accounts.google.com.signin-service.online/auth,1,signin-service.online,PhishTank/OpenPhish Patterns
+http://appleid.apple.com.verify-device.click/signin,1,verify-device.click,PhishTank/OpenPhish Patterns
+https://www.google.com/search?q=cybersecurity+best+practices,0,google.com,Tranco/Authoritative Top Domains
+https://www.google.co.in/search?q=reserve+bank+of+india,0,co.in,Tranco/Authoritative Top Domains
+https://en.wikipedia.org/wiki/Phishing,0,wikipedia.org,Tranco/Authoritative Top Domains
+https://en.wikipedia.org/wiki/Transport_Layer_Security,0,wikipedia.org,Tranco/Authoritative Top Domains
+https://en.wikipedia.org/wiki/Advanced_Persistent_Threat,0,wikipedia.org,Tranco/Authoritative Top Domains
+https://wikimedia.org/,0,wikimedia.org,Tranco/Authoritative Top Domains
+https://archive.org/web/,0,archive.org,Tranco/Authoritative Top Domains
+https://duckduckgo.com/?q=cyber+hygiene,0,duckduckgo.com,Tranco/Authoritative Top Domains
+https://www.bing.com/search?q=data+protection,0,bing.com,Tranco/Authoritative Top Domains
+https://yahoo.com/,0,yahoo.com,Tranco/Authoritative Top Domains
+https://cybercrime.gov.in/Webform/Crime_AuthoLogin.aspx,0,gov.in,Tranco/Authoritative Top Domains
+https://www.cert-in.org.in/,0,org.in,Tranco/Authoritative Top Domains
+https://www.rbi.org.in/Scripts/AboutUsDisplay.aspx,0,org.in,Tranco/Authoritative Top Domains
+https://www.npci.org.in/what-we-do/upi/product-overview,0,org.in,Tranco/Authoritative Top Domains
+https://www.cisa.gov/resources-tools/resources/phishing-infographic,0,cisa.gov,Tranco/Authoritative Top Domains
+https://www.incometax.gov.in/iec/foportal/,0,gov.in,Tranco/Authoritative Top Domains
+https://uidai.gov.in/en/,0,gov.in,Tranco/Authoritative Top Domains
+https://parivahan.gov.in/parivahan/,0,gov.in,Tranco/Authoritative Top Domains
+https://www.who.int/,0,who.int,Tranco/Authoritative Top Domains
+https://www.eff.org/pages/tor-and-https,0,eff.org,Tranco/Authoritative Top Domains
+https://csrc.nist.gov/publications/detail/sp/800-63/3/final,0,nist.gov,Tranco/Authoritative Top Domains
+https://www.onlinesbi.sbi/,0,onlinesbi.sbi,Tranco/Authoritative Top Domains
+https://www.hdfcbank.com/personal/ways-to-bank/online-banking,0,hdfcbank.com,Tranco/Authoritative Top Domains
+https://www.icicibank.com/personal-banking,0,icicibank.com,Tranco/Authoritative Top Domains
+https://www.axisbank.com/,0,axisbank.com,Tranco/Authoritative Top Domains
+https://www.bankofbaroda.in/,0,bankofbaroda.in,Tranco/Authoritative Top Domains
+https://www.kotak.com/en/home.html,0,kotak.com,Tranco/Authoritative Top Domains
+https://www.paypal.com/in/home,0,paypal.com,Tranco/Authoritative Top Domains
+https://www.chase.com/,0,chase.com,Tranco/Authoritative Top Domains
+https://www.wellsfargo.com/,0,wellsfargo.com,Tranco/Authoritative Top Domains
+https://www.barclays.co.uk/,0,co.uk,Tranco/Authoritative Top Domains
+https://github.com/torvalds/linux,0,github.com,Tranco/Authoritative Top Domains
+https://github.com/fastapi/fastapi,0,github.com,Tranco/Authoritative Top Domains
+https://www.python.org/downloads/,0,python.org,Tranco/Authoritative Top Domains
+https://pypi.org/project/fastapi/,0,pypi.org,Tranco/Authoritative Top Domains
+https://pypi.org/project/scikit-learn/,0,pypi.org,Tranco/Authoritative Top Domains
+https://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster,0,stackoverflow.com,Tranco/Authoritative Top Domains
+https://fastapi.tiangolo.com/tutorial/first-steps/,0,tiangolo.com,Tranco/Authoritative Top Domains
+https://scikit-learn.org/stable/modules/ensemble.html,0,scikit-learn.org,Tranco/Authoritative Top Domains
+https://pandas.pydata.org/docs/getting_started/index.html,0,pydata.org,Tranco/Authoritative Top Domains
+https://networkx.org/documentation/stable/tutorial.html,0,networkx.org,Tranco/Authoritative Top Domains
+https://docs.python.org/3/library/hashlib.html,0,python.org,Tranco/Authoritative Top Domains
+https://developer.mozilla.org/en-US/docs/Web/HTTP,0,mozilla.org,Tranco/Authoritative Top Domains
+https://docs.sqlalchemy.org/en/20/orm/quickstart.html,0,sqlalchemy.org,Tranco/Authoritative Top Domains
+https://hub.docker.com/,0,docker.com,Tranco/Authoritative Top Domains
+https://kubernetes.io/docs/home/,0,kubernetes.io,Tranco/Authoritative Top Domains
+https://www.kernel.org/,0,kernel.org,Tranco/Authoritative Top Domains
+https://ubuntu.com/download,0,ubuntu.com,Tranco/Authoritative Top Domains
+https://aws.amazon.com/security/,0,amazon.com,Tranco/Authoritative Top Domains
+https://cloud.google.com/security,0,google.com,Tranco/Authoritative Top Domains
+https://azure.microsoft.com/en-us/solutions/,0,microsoft.com,Tranco/Authoritative Top Domains
+https://www.cloudflare.com/learning/access-management/what-is-phishing/,0,cloudflare.com,Tranco/Authoritative Top Domains
+https://www.microsoft.com/en-in/,0,microsoft.com,Tranco/Authoritative Top Domains
+https://www.apple.com/in/,0,apple.com,Tranco/Authoritative Top Domains
+https://www.amazon.in/,0,amazon.in,Tranco/Authoritative Top Domains
+https://www.netflix.com/in/,0,netflix.com,Tranco/Authoritative Top Domains
+https://www.meta.com/,0,meta.com,Tranco/Authoritative Top Domains
+https://workspace.google.com/,0,google.com,Tranco/Authoritative Top Domains
+https://arxiv.org/abs/2301.00001,0,arxiv.org,Tranco/Authoritative Top Domains
+https://news.ycombinator.com/,0,ycombinator.com,Tranco/Authoritative Top Domains
+https://www.kaggle.com/datasets,0,kaggle.com,Tranco/Authoritative Top Domains
+https://www.bbc.com/news,0,bbc.com,Tranco/Authoritative Top Domains
+https://www.reuters.com/technology/,0,reuters.com,Tranco/Authoritative Top Domains
+https://www.bloomberg.com/,0,bloomberg.com,Tranco/Authoritative Top Domains
+https://timesofindia.indiatimes.com/,0,indiatimes.com,Tranco/Authoritative Top Domains
+https://www.thehindu.com/sci-tech/technology/,0,thehindu.com,Tranco/Authoritative Top Domains
+https://techcrunch.com/,0,techcrunch.com,Tranco/Authoritative Top Domains
+https://arstechnica.com/security/,0,arstechnica.com,Tranco/Authoritative Top Domains
